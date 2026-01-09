@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gestione-cantieri-v1';
+const CACHE_NAME = 'gestione-cantieri-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -31,6 +31,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Skip caching for POST requests and Supabase API calls
+  if (event.request.method !== 'GET' || event.request.url.includes('supabase.co')) {
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -52,48 +57,49 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'Nuova notifica',
+  console.log('Push event received:', event);
+  
+  let notificationData = {
+    title: 'Gestione Cantieri',
+    body: 'Nuova notifica',
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'open',
-        title: 'Apri',
-      },
-      {
-        action: 'close',
-        title: 'Chiudi',
-      }
-    ]
+    badge: '/icon-192.png'
   };
-
-  let title = 'Gestione Cantieri';
 
   if (event.data) {
     try {
       const data = event.data.json();
-      title = data.title || title;
-      options.body = data.message || options.body;
-      options.data = data;
+      notificationData = {
+        title: data.notification?.title || data.title || notificationData.title,
+        body: data.notification?.body || data.message || notificationData.body,
+        icon: data.notification?.icon || notificationData.icon,
+        badge: notificationData.badge,
+        data: data.data || data
+      };
     } catch (e) {
-      console.error('Error parsing push data:', e);
+      notificationData.body = event.data.text();
     }
   }
 
+  const options = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    vibrate: [200, 100, 200],
+    data: notificationData.data,
+    actions: [
+      { action: 'open', title: 'Apri' },
+      { action: 'close', title: 'Chiudi' }
+    ]
+  };
+
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
   event.waitUntil(
     clients.openWindow('/')
   );
