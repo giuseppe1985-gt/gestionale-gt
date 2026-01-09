@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { requestNotificationPermission } from '../lib/firebase';
 
 interface NotificationPermissionModalProps {
   onClose: () => void;
@@ -20,20 +21,27 @@ export default function NotificationPermissionModal({ onClose, userId }: Notific
         return;
       }
 
-      const permission = await Notification.requestPermission();
+      // Get real FCM token from Firebase
+      const fcmToken = await requestNotificationPermission();
 
-      if (permission === 'granted') {
+      if (fcmToken) {
         const deviceType = /iPhone|iPad|iPod/.test(navigator.userAgent)
           ? 'ios'
           : /Android/.test(navigator.userAgent)
           ? 'android'
           : 'web';
 
-        const dummyToken = `web_${userId}_${Date.now()}`;
+        // Delete old tokens for this user/device
+        await supabase
+          .from('push_notification_tokens')
+          .delete()
+          .eq('user_id', userId)
+          .eq('device_type', deviceType);
 
+        // Insert real FCM token
         await supabase.from('push_notification_tokens').insert({
           user_id: userId,
-          token: dummyToken,
+          token: fcmToken,
           device_type: deviceType,
           device_name: navigator.userAgent.substring(0, 100),
           enabled: true,
@@ -41,7 +49,8 @@ export default function NotificationPermissionModal({ onClose, userId }: Notific
 
         localStorage.setItem('notificationPermissionAsked', 'true');
         onClose();
-      } else if (permission === 'denied') {
+      } else {
+        // Permission denied or error
         localStorage.setItem('notificationPermissionAsked', 'true');
         onClose();
       }
