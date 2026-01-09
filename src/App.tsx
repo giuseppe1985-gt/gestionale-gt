@@ -41,7 +41,7 @@ function AppContent() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   useEffect(() => {
-    if (user && profile && profile.company_id) {
+    if (user && profile && profile.organization_id) {
       const hasAskedPermission = localStorage.getItem('notificationPermissionAsked');
       if (!hasAskedPermission) {
         const timer = setTimeout(() => {
@@ -76,7 +76,7 @@ function AppContent() {
     return <Login onShowRegister={() => setShowRegister(true)} />;
   }
 
-  if (user && (!profile || !profile.company_id || needsOnboarding)) {
+  if (user && (!profile || !profile.organization_id || needsOnboarding)) {
     return (
       <Onboarding
         userId={onboardingUserId || user.id}
