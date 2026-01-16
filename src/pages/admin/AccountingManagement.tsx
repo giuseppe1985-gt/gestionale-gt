@@ -1255,179 +1255,237 @@ setWorksiteExpenseInvoices(wsExpensesRes.data || []);
           )}
 
           {activeTab === 'calculations' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">
-                  Calcolo Fatture
-                  {timeFilter !== 'all' && (
-                    <span className="ml-2 text-sm font-normal text-gray-600">
-                      ({filterByDate(invoiceCalculations).length} di {invoiceCalculations.length})
-                    </span>
-                  )}
-                </h2>
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h2 className="text-lg font-semibold">
+        Calcolo Fatture
+      </h2>
+      <button
+        onClick={() => setShowCalculationModal(true)}
+        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+      >
+        <Plus className="w-4 h-4" />
+        Nuovo Elemento
+      </button>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* FATTURE INCASSO */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-green-900 mb-4">Fatture Incasso</h3>
+        <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+          {/* Fatture manuali */}
+          {filterByDate(invoiceCalculations).filter(c => c.type === 'income').map((calc) => (
+            <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{calc.invoice_number}</p>
+                <p className="text-xs text-gray-600">{calc.client_name}</p>
+                <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-green-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
                 <button
-                  onClick={() => setShowCalculationModal(true)}
-                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+                  onClick={() => handleDeleteCalculation(calc.id)}
+                  className="p-1 text-red-600 hover:bg-red-50 rounded"
                 >
-                  <Plus className="w-4 h-4" />
-                  Nuovo Elemento
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-green-900 mb-4">Fatture Incasso</h3>
-                  <div className="space-y-2 mb-4">
-                    {filterByDate(invoiceCalculations).filter(c => c.type === 'income').map((calc) => (
-                      <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{calc.invoice_number}</p>
-                          <p className="text-xs text-gray-600">{calc.client_name}</p>
-                          <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-green-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
-                          <button
-                            onClick={() => handleDeleteCalculation(calc.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-green-300 pt-4">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium text-green-900">Totale Incassi:</p>
-                      <p className="text-2xl font-bold text-green-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'income')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-red-900 mb-4">Fatture Spese</h3>
-                  <div className="space-y-2 mb-4">
-                    {filterByDate(invoiceCalculations).filter(c => c.type === 'expense').map((calc) => (
-                      <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{calc.invoice_number}</p>
-                          <p className="text-xs text-gray-600">{calc.client_name}</p>
-                          <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-red-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
-                          <button
-                            onClick={() => handleDeleteCalculation(calc.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-red-300 pt-4">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium text-red-900">Totale Spese:</p>
-                      <p className="text-2xl font-bold text-red-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'expense')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-4">Preventivi</h3>
-                  <div className="space-y-2 mb-4">
-                    {filterByDate(invoiceCalculations).filter(c => c.type === 'estimate').map((calc) => (
-                      <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{calc.invoice_number}</p>
-                          <p className="text-xs text-gray-600">{calc.client_name}</p>
-                          <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-blue-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
-                          <button
-                            onClick={() => handleDeleteCalculation(calc.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-blue-300 pt-4">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium text-blue-900">Totale Preventivi:</p>
-                      <p className="text-2xl font-bold text-blue-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'estimate')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {timeFilter !== 'all' && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">Riepilogo Periodo Filtrato</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Incassi Totali</p>
-                      <p className="text-xl font-bold text-green-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'income')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Spese Totali</p>
-                      <p className="text-xl font-bold text-red-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'expense')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Bilancio Netto</p>
-                      <p className="text-xl font-bold text-blue-700">
-                        {formatCurrency(
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'income')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) -
-                          filterByDate(invoiceCalculations)
-                            .filter(c => c.type === 'expense')
-                            .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+          ))}
+          {/* Fatture dai cantieri */}
+          {worksiteInvoices.map((inv) => (
+            <div key={`ws-${inv.id}`} className="flex items-center justify-between p-3 bg-green-100 rounded-lg border border-green-300">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{inv.invoice_number}</p>
+                <p className="text-xs text-gray-600">{inv.worksite?.name || 'Cantiere'}</p>
+                <p className="text-xs text-gray-500">{formatDate(inv.date)}</p>
+                <span className="text-xs bg-green-200 text-green-800 px-1 rounded">IVA {inv.vat_rate}%</span>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-green-600">{formatCurrency(parseFloat(inv.amount.toString()))}</p>
+                <p className="text-xs text-green-700">IVA: {formatCurrency(inv.vat_amount || 0)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-green-300 pt-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium text-green-900">Totale Incassi:</p>
+            <p className="text-2xl font-bold text-green-700">
+              {formatCurrency(
+                filterByDate(invoiceCalculations)
+                  .filter(c => c.type === 'income')
+                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+                worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+              )}
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* FATTURE SPESE */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-red-900 mb-4">Fatture Spese</h3>
+        <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+          {filterByDate(invoiceCalculations).filter(c => c.type === 'expense').map((calc) => (
+            <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{calc.invoice_number}</p>
+                <p className="text-xs text-gray-600">{calc.client_name}</p>
+                <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-red-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
+                <button
+                  onClick={() => handleDeleteCalculation(calc.id)}
+                  className="p-1 text-red-600 hover:bg-red-50 rounded"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-red-300 pt-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium text-red-900">Totale Spese:</p>
+            <p className="text-2xl font-bold text-red-700">
+              {formatCurrency(
+                filterByDate(invoiceCalculations)
+                  .filter(c => c.type === 'expense')
+                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* FATTURE SPESE CANTIERE - NUOVO */}
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-orange-900 mb-4">Fatture Spese Cantiere</h3>
+        <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+          {worksiteExpenseInvoices.map((inv) => (
+            <div key={inv.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{inv.invoice_number}</p>
+                <p className="text-xs text-gray-600">{inv.worksite?.name || 'Cantiere'}</p>
+                {inv.supplier_name && <p className="text-xs text-gray-500">Forn: {inv.supplier_name}</p>}
+                <p className="text-xs text-gray-500">{formatDate(inv.date)}</p>
+                <span className="text-xs bg-orange-200 text-orange-800 px-1 rounded">IVA {inv.vat_rate}%</span>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-orange-600">{formatCurrency(parseFloat(inv.amount.toString()))}</p>
+                <p className="text-xs text-orange-700">IVA: {formatCurrency(inv.vat_amount || 0)}</p>
+              </div>
+            </div>
+          ))}
+          {worksiteExpenseInvoices.length === 0 && (
+            <p className="text-center text-gray-500 py-4 text-sm">Nessuna fattura spesa cantiere</p>
+          )}
+        </div>
+        <div className="border-t border-orange-300 pt-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium text-orange-900">Totale Spese Cantiere:</p>
+            <p className="text-2xl font-bold text-orange-700">
+              {formatCurrency(
+                worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* PREVENTIVI */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">Preventivi</h3>
+        <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+          {filterByDate(invoiceCalculations).filter(c => c.type === 'estimate').map((calc) => (
+            <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{calc.invoice_number}</p>
+                <p className="text-xs text-gray-600">{calc.client_name}</p>
+                <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-blue-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
+                <button
+                  onClick={() => handleDeleteCalculation(calc.id)}
+                  className="p-1 text-red-600 hover:bg-red-50 rounded"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-blue-300 pt-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium text-blue-900">Totale Preventivi:</p>
+            <p className="text-2xl font-bold text-blue-700">
+              {formatCurrency(
+                filterByDate(invoiceCalculations)
+                  .filter(c => c.type === 'estimate')
+                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* RIEPILOGO */}
+    <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
+      <h4 className="font-semibold text-gray-900 mb-2">Riepilogo Generale</h4>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <p className="text-sm text-gray-600">Incassi Totali</p>
+          <p className="text-xl font-bold text-green-700">
+            {formatCurrency(
+              filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'income')
+                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Spese Totali</p>
+          <p className="text-xl font-bold text-red-700">
+            {formatCurrency(
+              filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'expense')
+                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Spese Cantiere</p>
+          <p className="text-xl font-bold text-orange-700">
+            {formatCurrency(
+              worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Bilancio Netto</p>
+          <p className="text-xl font-bold text-blue-700">
+            {formatCurrency(
+              (filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'income')
+                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)) -
+              (filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'expense')
+                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0))
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {showInvoiceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
