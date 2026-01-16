@@ -14,6 +14,8 @@ interface IssuedInvoice {
   issue_date: string;
   due_date: string;
   payment_status: 'pending' | 'paid' | 'overdue';
+  vat_rate: number;
+  vat_amount: number;
   notes: string;
   created_at: string;
 }
@@ -137,14 +139,15 @@ const [searchText, setSearchText] = useState('');
   const [showCalculationModal, setShowCalculationModal] = useState(false);
 
   const [invoiceForm, setInvoiceForm] = useState({
-    invoice_number: '',
-    client_name: '',
-    amount: '',
-    issue_date: new Date().toISOString().split('T')[0],
-    due_date: '',
-    payment_status: 'pending' as 'pending' | 'paid' | 'overdue',
-    notes: ''
-  });
+  invoice_number: '',
+  client_name: '',
+  amount: '',
+  issue_date: new Date().toISOString().split('T')[0],
+  due_date: '',
+  payment_status: 'pending' as 'pending' | 'paid' | 'overdue',
+  vat_rate: '22',
+  notes: ''
+});
 
   const [scheduleForm, setScheduleForm] = useState({
     title: '',
@@ -235,17 +238,23 @@ setWorksites(worksitesRes.data || []);
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from('issued_invoices').insert({
-        invoice_number: invoiceForm.invoice_number,
-        client_name: invoiceForm.client_name,
-        amount: parseFloat(invoiceForm.amount),
-        issue_date: invoiceForm.issue_date,
-        due_date: invoiceForm.due_date,
-        payment_status: invoiceForm.payment_status,
-        notes: invoiceForm.notes,
-        organization_id: profile?.organization_id,
-        created_by: profile?.id
-      });
+      const amount = parseFloat(invoiceForm.amount);
+const vatRate = parseInt(invoiceForm.vat_rate);
+const vatAmount = vatRate === 0 ? 0 : amount - (amount / (1 + vatRate / 100));
+
+const { error } = await supabase.from('issued_invoices').insert({
+  invoice_number: invoiceForm.invoice_number,
+  client_name: invoiceForm.client_name,
+  amount: amount,
+  issue_date: invoiceForm.issue_date,
+  due_date: invoiceForm.due_date,
+  payment_status: invoiceForm.payment_status,
+  vat_rate: vatRate,
+  vat_amount: vatAmount,
+  notes: invoiceForm.notes,
+  organization_id: profile?.organization_id,
+  created_by: profile?.id
+});
 
       if (error) throw error;
 
@@ -477,17 +486,18 @@ setWorksites(worksitesRes.data || []);
   };
 
   const resetInvoiceForm = () => {
-    setInvoiceForm({
-      invoice_number: '',
-      client_name: '',
-      amount: '',
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: '',
-      payment_status: 'pending',
-      notes: ''
-    });
-    setEditingItem(null);
-  };
+  setInvoiceForm({
+    invoice_number: '',
+    client_name: '',
+    amount: '',
+    issue_date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    payment_status: 'pending',
+    vat_rate: '22',
+    notes: ''
+  });
+  setEditingItem(null);
+};
 
   const resetScheduleForm = () => {
     setScheduleForm({
