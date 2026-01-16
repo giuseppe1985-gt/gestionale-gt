@@ -1486,7 +1486,7 @@ setWorksiteExpenseInvoices(wsExpensesRes.data || []);
     </div>
   </div>
 )}
-          
+        </div>
       </div>
 
       {showInvoiceModal && (
