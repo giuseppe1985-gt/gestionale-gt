@@ -174,12 +174,13 @@ const [searchText, setSearchText] = useState('');
   });
 
   const [calculationForm, setCalculationForm] = useState({
-    type: 'income' as 'income' | 'expense' | 'estimate',
-    invoice_number: '',
-    invoice_date: new Date().toISOString().split('T')[0],
-    client_name: '',
-    amount: ''
-  });
+  type: 'income' as 'income' | 'expense' | 'estimate',
+  invoice_number: '',
+  invoice_date: new Date().toISOString().split('T')[0],
+  client_name: '',
+  amount: '',
+  worksite_id: ''
+});
 
   const [editingItem, setEditingItem] = useState<string | null>(null);
 
@@ -568,14 +569,15 @@ setWorksites(worksitesRes.data || []);
   };
 
   const resetCalculationForm = () => {
-    setCalculationForm({
-      type: 'income',
-      invoice_number: '',
-      invoice_date: new Date().toISOString().split('T')[0],
-      client_name: '',
-      amount: ''
-    });
-  };
+  setCalculationForm({
+    type: 'income',
+    invoice_number: '',
+    invoice_date: new Date().toISOString().split('T')[0],
+    client_name: '',
+    amount: '',
+    worksite_id: ''
+  });
+};
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('it-IT', {
