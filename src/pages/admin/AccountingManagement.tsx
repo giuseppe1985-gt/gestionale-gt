@@ -2201,22 +2201,49 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Importo (€) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculationForm.amount}
-                    onChange={(e) => setCalculationForm({ ...calculationForm, amount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cantiere (opzionale)
-                  </label>
+                  <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Importo Totale (€) *
+  </label>
+  <input
+    type="number"
+    step="0.01"
+    value={calculationForm.amount}
+    onChange={(e) => setCalculationForm({ ...calculationForm, amount: e.target.value })}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+    required
+  />
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    % IVA *
+  </label>
+  <select
+    value={calculationForm.vat_rate}
+    onChange={(e) => setCalculationForm({ ...calculationForm, vat_rate: e.target.value })}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  >
+    <option value="0">0%</option>
+    <option value="4">4%</option>
+    <option value="10">10%</option>
+    <option value="22">22%</option>
+  </select>
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    € IVA (calcolato)
+  </label>
+  <input
+    type="text"
+    value={calculationForm.amount ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(parseInt(calculationForm.vat_rate) === 0 ? 0 : parseFloat(calculationForm.amount) - (parseFloat(calculationForm.amount) / (1 + parseInt(calculationForm.vat_rate) / 100))) : '€ 0,00'}
+    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100"
+    disabled
+  />
+</div>
+<div className="col-span-2">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Cantiere (opzionale)
+  </label>
                   <select
                     value={calculationForm.worksite_id}
                     onChange={(e) => setCalculationForm({ ...calculationForm, worksite_id: e.target.value })}
