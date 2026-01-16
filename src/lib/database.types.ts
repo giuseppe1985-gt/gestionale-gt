@@ -428,7 +428,7 @@ export interface Database {
         Row: {
           id: string
           worker_id: string
-          request_type: 'vacation' | 'rol' | 'sick_leave'
+          request_type: 'vacation' | 'rol' | 'sick_leave' | 'appointment'
           start_date: string | null
           end_date: string | null
           hours_requested: number
@@ -438,13 +438,14 @@ export interface Database {
           reviewed_at: string | null
           organization_id: string | null
           certificate_url: string | null
+          appointment_time: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           worker_id: string
-          request_type: 'vacation' | 'rol' | 'sick_leave'
+          request_type: 'vacation' | 'rol' | 'sick_leave' | 'appointment'
           start_date?: string | null
           end_date?: string | null
           hours_requested: number
@@ -454,13 +455,14 @@ export interface Database {
           reviewed_at?: string | null
           organization_id?: string | null
           certificate_url?: string | null
+          appointment_time?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           worker_id?: string
-          request_type?: 'vacation' | 'rol' | 'sick_leave'
+          request_type?: 'vacation' | 'rol' | 'sick_leave' | 'appointment'
           start_date?: string | null
           end_date?: string | null
           hours_requested?: number
@@ -470,6 +472,7 @@ export interface Database {
           reviewed_at?: string | null
           organization_id?: string | null
           certificate_url?: string | null
+          appointment_time?: string | null
           created_at?: string
           updated_at?: string
         }
