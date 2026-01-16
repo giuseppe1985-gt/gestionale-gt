@@ -649,6 +649,214 @@ export interface Database {
           updated_at?: string
         }
       }
+      worksite_revenues: {
+        Row: {
+          id: string
+          worksite_id: string
+          amount: number
+          description: string | null
+          date: string
+          created_by: string | null
+          organization_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          worksite_id: string
+          amount: number
+          description?: string | null
+          date: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          worksite_id?: string
+          amount?: number
+          description?: string | null
+          date?: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      worksite_invoices: {
+        Row: {
+          id: string
+          worksite_id: string
+          amount: number
+          invoice_number: string
+          description: string | null
+          date: string
+          vat_rate: number
+          vat_amount: number
+          file_path: string | null
+          file_name: string | null
+          created_by: string | null
+          organization_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          worksite_id: string
+          amount: number
+          invoice_number: string
+          description?: string | null
+          date: string
+          vat_rate?: number
+          vat_amount?: number
+          file_path?: string | null
+          file_name?: string | null
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          worksite_id?: string
+          amount?: number
+          invoice_number?: string
+          description?: string | null
+          date?: string
+          vat_rate?: number
+          vat_amount?: number
+          file_path?: string | null
+          file_name?: string | null
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      worksite_liquid_assets: {
+        Row: {
+          id: string
+          worksite_id: string
+          amount: number
+          description: string | null
+          date: string
+          created_by: string | null
+          organization_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          worksite_id: string
+          amount: number
+          description?: string | null
+          date: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          worksite_id?: string
+          amount?: number
+          description?: string | null
+          date?: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      worksite_budget_items: {
+        Row: {
+          id: string
+          worksite_id: string
+          amount: number
+          description: string | null
+          date: string
+          created_by: string | null
+          organization_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          worksite_id: string
+          amount: number
+          description?: string | null
+          date: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          worksite_id?: string
+          amount?: number
+          description?: string | null
+          date?: string
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      worksite_expense_invoices: {
+        Row: {
+          id: string
+          worksite_id: string
+          amount: number
+          invoice_number: string
+          description: string | null
+          date: string
+          vat_rate: number
+          vat_amount: number
+          supplier_name: string | null
+          file_path: string | null
+          file_name: string | null
+          created_by: string | null
+          organization_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          worksite_id: string
+          amount: number
+          invoice_number: string
+          description?: string | null
+          date: string
+          vat_rate?: number
+          vat_amount?: number
+          supplier_name?: string | null
+          file_path?: string | null
+          file_name?: string | null
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          worksite_id?: string
+          amount?: number
+          invoice_number?: string
+          description?: string | null
+          date?: string
+          vat_rate?: number
+          vat_amount?: number
+          supplier_name?: string | null
+          file_path?: string | null
+          file_name?: string | null
+          created_by?: string | null
+          organization_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
   }
 }
