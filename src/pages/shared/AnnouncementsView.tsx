@@ -35,10 +35,9 @@ export default function AnnouncementsView() {
         if (announcement.target_audience === 'worker') {
           return announcement.target_worker_id === user?.id;
         }
-        // Se è per un cantiere specifico, lo mostra (la logica esistente)
-        // Potresti voler aggiungere un filtro per verificare se l'utente è assegnato a quel cantiere
+        // Se è per un cantiere specifico, mostra a tutti (comportamento esistente)
         if (announcement.target_audience === 'specific') {
-          return true; // Mantieni il comportamento esistente
+          return true;
         }
         return true;
       });
