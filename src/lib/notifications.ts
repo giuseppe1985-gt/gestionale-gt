@@ -58,7 +58,7 @@ interface NotifyAnnouncementParams {
   targetWorksiteId?: string | null;
 }
 
-export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
+ notifyNewAnnouncement(params: NotifyAnnouncementParams) {
   let userIds: string[] = [];
 
   if (params.targetAudience === 'worker' && params.targetWorkerId) {
@@ -95,6 +95,8 @@ export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
     return;
   }
 
+  console.log('Sending notification to userIds:', userIds);
+
   await sendImmediateNotification({
     type: 'announcement',
     userIds,
@@ -105,16 +107,12 @@ export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
   });
 }
 
-export async function notifyNewAssignment(workerId: string, worksiteName: string, assignmentId: string) {
-  await sendImmediateNotification({
-    type: 'assignment',
-    userIds: [workerId],
-    title: 'Nuova Assegnazione',
-    body: `Sei stato assegnato al cantiere: ${worksiteName}`,
-    entityType: 'assignment',
-    entityId: assignmentId,
-  });
-}
+export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
+  console.log('notifyNewAnnouncement called with params:', params);
+  let userIds: string[] = [];
+
+  if (params.targetAudience === 'worker' && params.targetWorkerId) {
+    console.log('Sending notification to single worker:', params.targetWorkerId);
 
 export async function notifyLeaveRequest(adminIds: string[], workerName: string, leaveRequestId: string) {
   await sendImmediateNotification({
