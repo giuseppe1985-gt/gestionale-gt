@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   FileText, Calendar, AlertCircle, TrendingUp, CreditCard,
-  Plus, Trash2, Edit2, CheckCircle, X, DollarSign, Filter
+  Plus, Trash2, Edit2, CheckCircle, X, DollarSign, Filter, Search
 } from 'lucide-react';
 
 interface IssuedInvoice {
@@ -1274,17 +1274,37 @@ setWorksites(worksitesRes.data || []);
 
           {activeTab === 'calculations' && (
   <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-lg font-semibold">
-        Calcolo Fatture
-      </h2>
-      <button
-        onClick={() => setShowCalculationModal(true)}
-        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
-      >
-        <Plus className="w-4 h-4" />
-        Nuovo Elemento
-      </button>
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <h2 className="text-lg font-semibold">Calcolo Fatture</h2>
+      <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cerca cantiere/cliente..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full md:w-64"
+          />
+        </div>
+        <select
+          value={selectedWorksiteFilter}
+          onChange={(e) => setSelectedWorksiteFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg"
+        >
+          <option value="">Tutti i cantieri</option>
+          {worksites.map((ws) => (
+            <option key={ws.id} value={ws.id}>{ws.name}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => setShowCalculationModal(true)}
+          className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+        >
+          <Plus className="w-4 h-4" />
+          Nuovo Elemento
+        </button>
+      </div>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1292,12 +1312,16 @@ setWorksites(worksitesRes.data || []);
       <div className="bg-green-50 border border-green-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-green-900 mb-4">Fatture Incasso</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-          {/* Fatture manuali */}
-          {filterByDate(invoiceCalculations).filter(c => c.type === 'income').map((calc) => (
+          {filterByDate(invoiceCalculations)
+            .filter(c => c.type === 'income')
+            .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+            .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((calc) => (
             <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{calc.invoice_number}</p>
                 <p className="text-xs text-gray-600">{calc.client_name}</p>
+                {calc.worksite?.name && <p className="text-xs text-blue-600">{calc.worksite.name}</p>}
                 <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -1311,8 +1335,10 @@ setWorksites(worksitesRes.data || []);
               </div>
             </div>
           ))}
-          {/* Fatture dai cantieri */}
-          {worksiteInvoices.map((inv) => (
+          {worksiteInvoices
+            .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+            .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((inv) => (
             <div key={`ws-${inv.id}`} className="flex items-center justify-between p-3 bg-green-100 rounded-lg border border-green-300">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{inv.invoice_number}</p>
@@ -1327,15 +1353,31 @@ setWorksites(worksitesRes.data || []);
             </div>
           ))}
         </div>
-        <div className="border-t border-green-300 pt-4">
+        <div className="border-t border-green-300 pt-4 space-y-2">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-green-900">Totale Incassi:</p>
-            <p className="text-2xl font-bold text-green-700">
+            <p className="text-xl font-bold text-green-700">
               {formatCurrency(
                 filterByDate(invoiceCalculations)
                   .filter(c => c.type === 'income')
+                  .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                  .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                   .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
-                worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+                worksiteInvoices
+                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-green-800">Totale IVA Vendite:</p>
+            <p className="text-lg font-semibold text-green-600">
+              {formatCurrency(
+                worksiteInvoices
+                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
               )}
             </p>
           </div>
@@ -1346,11 +1388,16 @@ setWorksites(worksitesRes.data || []);
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-red-900 mb-4">Fatture Spese</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-          {filterByDate(invoiceCalculations).filter(c => c.type === 'expense').map((calc) => (
+          {filterByDate(invoiceCalculations)
+            .filter(c => c.type === 'expense')
+            .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+            .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((calc) => (
             <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{calc.invoice_number}</p>
                 <p className="text-xs text-gray-600">{calc.client_name}</p>
+                {calc.worksite?.name && <p className="text-xs text-blue-600">{calc.worksite.name}</p>}
                 <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -1368,10 +1415,12 @@ setWorksites(worksitesRes.data || []);
         <div className="border-t border-red-300 pt-4">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-red-900">Totale Spese:</p>
-            <p className="text-2xl font-bold text-red-700">
+            <p className="text-xl font-bold text-red-700">
               {formatCurrency(
                 filterByDate(invoiceCalculations)
                   .filter(c => c.type === 'expense')
+                  .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                  .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                   .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
               )}
             </p>
@@ -1379,11 +1428,14 @@ setWorksites(worksitesRes.data || []);
         </div>
       </div>
 
-      {/* FATTURE SPESE CANTIERE - NUOVO */}
+      {/* FATTURE SPESE CANTIERE */}
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-orange-900 mb-4">Fatture Spese Cantiere</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-          {worksiteExpenseInvoices.map((inv) => (
+          {worksiteExpenseInvoices
+            .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+            .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((inv) => (
             <div key={inv.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{inv.invoice_number}</p>
@@ -1398,16 +1450,30 @@ setWorksites(worksitesRes.data || []);
               </div>
             </div>
           ))}
-          {worksiteExpenseInvoices.length === 0 && (
+          {worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).length === 0 && (
             <p className="text-center text-gray-500 py-4 text-sm">Nessuna fattura spesa cantiere</p>
           )}
         </div>
-        <div className="border-t border-orange-300 pt-4">
+        <div className="border-t border-orange-300 pt-4 space-y-2">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-orange-900">Totale Spese Cantiere:</p>
-            <p className="text-2xl font-bold text-orange-700">
+            <p className="text-xl font-bold text-orange-700">
               {formatCurrency(
-                worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+                worksiteExpenseInvoices
+                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-orange-800">Totale IVA Acquisti:</p>
+            <p className="text-lg font-semibold text-orange-600">
+              {formatCurrency(
+                worksiteExpenseInvoices
+                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
               )}
             </p>
           </div>
@@ -1418,11 +1484,16 @@ setWorksites(worksitesRes.data || []);
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-4">Preventivi</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-          {filterByDate(invoiceCalculations).filter(c => c.type === 'estimate').map((calc) => (
+          {filterByDate(invoiceCalculations)
+            .filter(c => c.type === 'estimate')
+            .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+            .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((calc) => (
             <div key={calc.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">{calc.invoice_number}</p>
                 <p className="text-xs text-gray-600">{calc.client_name}</p>
+                {calc.worksite?.name && <p className="text-xs text-blue-600">{calc.worksite.name}</p>}
                 <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -1440,10 +1511,12 @@ setWorksites(worksitesRes.data || []);
         <div className="border-t border-blue-300 pt-4">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-blue-900">Totale Preventivi:</p>
-            <p className="text-2xl font-bold text-blue-700">
+            <p className="text-xl font-bold text-blue-700">
               {formatCurrency(
                 filterByDate(invoiceCalculations)
                   .filter(c => c.type === 'estimate')
+                  .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                  .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                   .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
               )}
             </p>
@@ -1452,18 +1525,23 @@ setWorksites(worksitesRes.data || []);
       </div>
     </div>
 
-    {/* RIEPILOGO */}
+    {/* RIEPILOGO CON IVA */}
     <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
-      <h4 className="font-semibold text-gray-900 mb-2">Riepilogo Generale</h4>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <h4 className="font-semibold text-gray-900 mb-4">Riepilogo Generale</h4>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div>
           <p className="text-sm text-gray-600">Incassi Totali</p>
           <p className="text-xl font-bold text-green-700">
             {formatCurrency(
               filterByDate(invoiceCalculations)
                 .filter(c => c.type === 'income')
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                 .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
-              worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+              worksiteInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
             )}
           </p>
         </div>
@@ -1473,15 +1551,13 @@ setWorksites(worksitesRes.data || []);
             {formatCurrency(
               filterByDate(invoiceCalculations)
                 .filter(c => c.type === 'expense')
-                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
-            )}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Spese Cantiere</p>
-          <p className="text-xl font-bold text-orange-700">
-            {formatCurrency(
-              worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              worksiteExpenseInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
             )}
           </p>
         </div>
@@ -1491,13 +1567,52 @@ setWorksites(worksitesRes.data || []);
             {formatCurrency(
               (filterByDate(invoiceCalculations)
                 .filter(c => c.type === 'income')
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                 .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
-              worksiteInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)) -
+              worksiteInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)) -
               (filterByDate(invoiceCalculations)
                 .filter(c => c.type === 'expense')
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                 .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
-              worksiteExpenseInvoices.reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0))
+              worksiteExpenseInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0))
             )}
+          </p>
+        </div>
+        <div className="border-l-2 border-emerald-300 pl-4">
+          <p className="text-sm text-gray-600">IVA Vendite - IVA Acquisti</p>
+          <p className="text-lg font-bold text-emerald-700">
+            {formatCurrency(
+              worksiteInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
+              worksiteExpenseInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Totale IVA</p>
+          <p className={`text-xl font-bold ${
+            (worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
+            worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)) >= 0 
+            ? 'text-red-600' : 'text-green-600'
+          }`}>
+            {(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
+            worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)) >= 0 
+            ? `Da versare: ${formatCurrency(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) - worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0))}`
+            : `A credito: ${formatCurrency(Math.abs(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) - worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)))}`
+            }
           </p>
         </div>
       </div>
