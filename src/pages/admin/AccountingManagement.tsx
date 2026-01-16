@@ -1463,7 +1463,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </div>
           ))}
         </div>
-        <div className="border-t border-red-300 pt-4">
+        <div className="border-t border-red-300 pt-4 space-y-2">
           <div className="flex justify-between items-center">
             <p className="text-sm font-medium text-red-900">Totale Spese:</p>
             <p className="text-xl font-bold text-red-700">
@@ -1473,6 +1473,18 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
                   .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                   .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
+              )}
+            </p>
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-red-800">Totale IVA Spese:</p>
+            <p className="text-lg font-semibold text-red-600">
+              {formatCurrency(
+                filterByDate(invoiceCalculations)
+                  .filter(c => c.type === 'expense')
+                  .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                  .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, c) => sum + (c.vat_amount || 0), 0)
               )}
             </p>
           </div>
