@@ -29,7 +29,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile?.id}/${Date.now()}.${fileExt}`;
 
-      // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
@@ -38,12 +37,10 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
         throw uploadError;
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -56,7 +53,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
       setAvatarUrl(publicUrl);
       setShowAvatarModal(false);
       
-      // Refresh profile to update everywhere
       if (refreshProfile) {
         await refreshProfile();
       }
@@ -217,39 +213,36 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
             </div>
 
             <div className="flex items-center space-x-4">
-  <NotificationBell />
-  <div className="text-right hidden sm:block">
-    <p className="text-sm font-medium">{profile?.full_name}</p>
-    <p className="text-xs text-blue-200">{profile?.position || profile?.role}</p>
-  </div>
-  <button
-    onClick={() => setShowAvatarModal(true)}
-    className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400 hover:border-white transition-colors cursor-pointer"
-    title="Cambia foto profilo"
-  >
-    {avatarUrl || profile?.avatar_url ? (
-      <img 
-        src={avatarUrl || profile?.avatar_url || ''} 
-        alt="Avatar" 
-        className="w-full h-full object-cover"
-      />
-    ) : (
-      <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-        {profile?.full_name?.charAt(0).toUpperCase() || '?'}
-      </div>
-    )}
-    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition-all flex items-center justify-center">
-      <Camera className="w-4 h-4 text-white opacity-0 hover:opacity-100" />
-    </div>
-  </button>
-  <button
-    onClick={() => signOut()}
-    className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-  >
-    <LogOut className="w-4 h-4" />
-    <span className="hidden sm:inline">Esci</span>
-  </button>
-</div>
+              <NotificationBell />
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium">{profile?.full_name}</p>
+                <p className="text-xs text-blue-200">{profile?.position || profile?.role}</p>
+              </div>
+              <button
+                onClick={() => setShowAvatarModal(true)}
+                className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400 hover:border-white transition-colors cursor-pointer"
+                title="Cambia foto profilo"
+              >
+                {avatarUrl || profile?.avatar_url ? (
+                  <img 
+                    src={avatarUrl || profile?.avatar_url || ''} 
+                    alt="Avatar" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                    {profile?.full_name?.charAt(0).toUpperCase() || '?'}
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => signOut()}
+                className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Esci</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
