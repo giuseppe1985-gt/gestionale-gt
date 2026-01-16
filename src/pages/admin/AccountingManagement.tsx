@@ -61,7 +61,34 @@ interface MonthlySummary {
   total_amount: number;
   transaction_count: number;
 }
+interface WorksiteInvoice {
+  id: string;
+  worksite_id: string;
+  amount: number;
+  invoice_number: string;
+  description: string | null;
+  date: string;
+  vat_rate: number;
+  vat_amount: number;
+  worksite?: {
+    name: string;
+  };
+}
 
+interface WorksiteExpenseInvoice {
+  id: string;
+  worksite_id: string;
+  amount: number;
+  invoice_number: string;
+  description: string | null;
+  date: string;
+  vat_rate: number;
+  vat_amount: number;
+  supplier_name: string | null;
+  worksite?: {
+    name: string;
+  };
+}
 interface InvoiceCalculation {
   id: string;
   type: 'income' | 'expense' | 'estimate';
@@ -85,7 +112,8 @@ export default function AccountingManagement() {
   const [invoiceAdvances, setInvoiceAdvances] = useState<InvoiceAdvance[]>([]);
   const [monthlySummary, setMonthlySummary] = useState<MonthlySummary[]>([]);
   const [invoiceCalculations, setInvoiceCalculations] = useState<InvoiceCalculation[]>([]);
-
+const [worksiteInvoices, setWorksiteInvoices] = useState<WorksiteInvoice[]>([]);
+const [worksiteExpenseInvoices, setWorksiteExpenseInvoices] = useState<WorksiteExpenseInvoice[]>([]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -151,28 +179,34 @@ export default function AccountingManagement() {
     try {
       setLoading(true);
 
-      const [invoicesRes, scheduleRes, ribaRes, advancesRes, summaryRes, calculationsRes] = await Promise.all([
-        supabase.from('issued_invoices').select('*').order('due_date', { ascending: false }),
-        supabase.from('payment_schedule').select('*').order('due_date', { ascending: false }),
-        supabase.from('supplier_riba').select('*').order('due_date', { ascending: false }),
-        supabase.from('invoice_advances').select('*').order('advance_date', { ascending: false }),
-        supabase.from('monthly_cards_summary').select('*'),
-        supabase.from('invoice_calculations').select('*').order('invoice_date', { ascending: false })
-      ]);
+      const [invoicesRes, scheduleRes, ribaRes, advancesRes, summaryRes, calculationsRes, wsInvoicesRes, wsExpensesRes] = await Promise.all([
+  supabase.from('issued_invoices').select('*').order('due_date', { ascending: false }),
+  supabase.from('payment_schedule').select('*').order('due_date', { ascending: false }),
+  supabase.from('supplier_riba').select('*').order('due_date', { ascending: false }),
+  supabase.from('invoice_advances').select('*').order('advance_date', { ascending: false }),
+  supabase.from('monthly_cards_summary').select('*'),
+  supabase.from('invoice_calculations').select('*').order('invoice_date', { ascending: false }),
+  supabase.from('worksite_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false }),
+  supabase.from('worksite_expense_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false })
+]);
 
-      if (invoicesRes.error) throw invoicesRes.error;
-      if (scheduleRes.error) throw scheduleRes.error;
-      if (ribaRes.error) throw ribaRes.error;
-      if (advancesRes.error) throw advancesRes.error;
-      if (summaryRes.error) throw summaryRes.error;
-      if (calculationsRes.error) throw calculationsRes.error;
+if (invoicesRes.error) throw invoicesRes.error;
+if (scheduleRes.error) throw scheduleRes.error;
+if (ribaRes.error) throw ribaRes.error;
+if (advancesRes.error) throw advancesRes.error;
+if (summaryRes.error) throw summaryRes.error;
+if (calculationsRes.error) throw calculationsRes.error;
+if (wsInvoicesRes.error) throw wsInvoicesRes.error;
+if (wsExpensesRes.error) throw wsExpensesRes.error;
 
-      setIssuedInvoices(invoicesRes.data || []);
-      setPaymentSchedule(scheduleRes.data || []);
-      setSupplierRiba(ribaRes.data || []);
-      setInvoiceAdvances(advancesRes.data || []);
-      setMonthlySummary(summaryRes.data || []);
-      setInvoiceCalculations(calculationsRes.data || []);
+setIssuedInvoices(invoicesRes.data || []);
+setPaymentSchedule(scheduleRes.data || []);
+setSupplierRiba(ribaRes.data || []);
+setInvoiceAdvances(advancesRes.data || []);
+setMonthlySummary(summaryRes.data || []);
+setInvoiceCalculations(calculationsRes.data || []);
+setWorksiteInvoices(wsInvoicesRes.data || []);
+setWorksiteExpenseInvoices(wsExpensesRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Errore nel caricamento dei dati');
