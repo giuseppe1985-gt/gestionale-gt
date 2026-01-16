@@ -1346,16 +1346,18 @@ const { error } = await supabase.from('invoice_calculations').insert({
                 <p className="text-xs text-gray-600">{calc.client_name}</p>
                 {calc.worksite?.name && <p className="text-xs text-blue-600">{calc.worksite.name}</p>}
                 <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
+                <span className="text-xs bg-green-200 text-green-800 px-1 rounded">IVA {calc.vat_rate || 22}%</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="text-right">
                 <p className="font-bold text-green-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
-                <button
-                  onClick={() => handleDeleteCalculation(calc.id)}
-                  className="p-1 text-red-600 hover:bg-red-50 rounded"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <p className="text-xs text-green-700">IVA: {formatCurrency(calc.vat_amount || 0)}</p>
               </div>
+              <button
+                onClick={() => handleDeleteCalculation(calc.id)}
+                className="p-1 text-red-600 hover:bg-red-50 rounded ml-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           ))}
           {/* Fatture Emesse dalla tab principale */}
@@ -1446,16 +1448,18 @@ const { error } = await supabase.from('invoice_calculations').insert({
                 <p className="text-xs text-gray-600">{calc.client_name}</p>
                 {calc.worksite?.name && <p className="text-xs text-blue-600">{calc.worksite.name}</p>}
                 <p className="text-xs text-gray-500">{formatDate(calc.invoice_date)}</p>
+                <span className="text-xs bg-red-200 text-red-800 px-1 rounded">IVA {calc.vat_rate || 22}%</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="text-right">
                 <p className="font-bold text-red-600">{formatCurrency(parseFloat(calc.amount.toString()))}</p>
-                <button
-                  onClick={() => handleDeleteCalculation(calc.id)}
-                  className="p-1 text-red-600 hover:bg-red-50 rounded"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <p className="text-xs text-red-700">IVA: {formatCurrency(calc.vat_amount || 0)}</p>
               </div>
+              <button
+                onClick={() => handleDeleteCalculation(calc.id)}
+                className="p-1 text-red-600 hover:bg-red-50 rounded ml-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           ))}
         </div>
