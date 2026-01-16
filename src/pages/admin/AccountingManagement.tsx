@@ -1663,34 +1663,60 @@ const { error } = await supabase.from('issued_invoices').insert({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Importo (€) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={invoiceForm.amount}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stato *
-                  </label>
-                  <select
-                    value={invoiceForm.payment_status}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, payment_status: e.target.value as any })}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
-                    style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
-                    required
-                  >
-                    <option value="pending">In Attesa</option>
-                    <option value="paid">Pagato</option>
-                    <option value="overdue">Scaduto</option>
-                  </select>
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Importo Totale (€) *
+  </label>
+  <input
+    type="number"
+    step="0.01"
+    value={invoiceForm.amount}
+    onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+    required
+  />
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    % IVA *
+  </label>
+  <select
+    value={invoiceForm.vat_rate}
+    onChange={(e) => setInvoiceForm({ ...invoiceForm, vat_rate: e.target.value })}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  >
+    <option value="0">0%</option>
+    <option value="4">4%</option>
+    <option value="10">10%</option>
+    <option value="22">22%</option>
+  </select>
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    € IVA (calcolato)
+  </label>
+  <input
+    type="text"
+    value={invoiceForm.amount ? new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(parseInt(invoiceForm.vat_rate) === 0 ? 0 : parseFloat(invoiceForm.amount) - (parseFloat(invoiceForm.amount) / (1 + parseInt(invoiceForm.vat_rate) / 100))) : '€ 0,00'}
+    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100"
+    disabled
+  />
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Stato *
+  </label>
+  <select
+    value={invoiceForm.payment_status}
+    onChange={(e) => setInvoiceForm({ ...invoiceForm, payment_status: e.target.value as any })}
+    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+    style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
+    required
+  >
+    <option value="pending">In Attesa</option>
+    <option value="paid">Pagato</option>
+    <option value="overdue">Scaduto</option>
+  </select>
+</div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Data Emissione *
