@@ -14,6 +14,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
 
   const adminMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'workers', label: 'Lavoratori', icon: Users },
     { id: 'worksites', label: 'Cantieri', icon: Building2 },
     { id: 'vehicles', label: 'Furgoni', icon: Truck },
@@ -24,7 +25,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     { id: 'leave-balances', label: 'Monte Ore', icon: CalendarClock },
     { id: 'leave-requests', label: 'Richieste Permessi', icon: FileText },
     { id: 'availability', label: 'Disponibilità', icon: CalendarCheck },
-    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'cards', label: 'Carte', icon: CreditCard },
     { id: 'accounting', label: 'Contabilità', icon: Receipt },
     { id: 'deadlines', label: 'Scadenze', icon: Bell },
@@ -34,29 +34,30 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
 
   const workerMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'time-tracking', label: 'Timbratura', icon: Clock },
     { id: 'daily-reports-worker', label: 'Rapportini', icon: ClipboardList },
     { id: 'assignments', label: 'Assegnazioni', icon: Calendar },
     { id: 'leave-requests', label: 'Permessi', icon: FileText },
     { id: 'deadlines', label: 'Scadenze', icon: Bell },
-    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'regulations', label: 'Regolamento', icon: BookOpen },
   ];
 
   const salesManagerMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'time-tracking', label: 'Timbratura', icon: Clock },
     { id: 'daily-reports', label: 'Rapportini', icon: ClipboardList },
     { id: 'assignments', label: 'Assegnazioni', icon: Calendar },
     { id: 'leave-requests', label: 'Permessi', icon: FileText },
     { id: 'clients', label: 'Clienti', icon: UserCheck },
     { id: 'deadlines', label: 'Scadenze', icon: Bell },
-    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'regulations', label: 'Regolamento', icon: BookOpen },
   ];
 
   const orgManagerMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'workers', label: 'Lavoratori', icon: Users },
     { id: 'worksites', label: 'Cantieri', icon: Building2 },
     { id: 'vehicles', label: 'Furgoni', icon: Truck },
@@ -67,7 +68,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     { id: 'leave-balances', label: 'Monte Ore', icon: CalendarClock },
     { id: 'leave-requests', label: 'Richieste Permessi', icon: FileText },
     { id: 'availability', label: 'Disponibilità', icon: CalendarCheck },
-    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'cards', label: 'Carte', icon: CreditCard },
     { id: 'deadlines', label: 'Scadenze', icon: Bell },
     { id: 'regulations', label: 'Regolamento', icon: BookOpen },
@@ -75,6 +75,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
 
   const administratorMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'workers', label: 'Lavoratori', icon: Users },
     { id: 'worksites', label: 'Cantieri', icon: Building2 },
     { id: 'vehicles', label: 'Furgoni', icon: Truck },
@@ -85,7 +86,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     { id: 'leave-balances', label: 'Monte Ore', icon: CalendarClock },
     { id: 'leave-requests', label: 'Richieste Permessi', icon: FileText },
     { id: 'availability', label: 'Disponibilità', icon: CalendarCheck },
-    { id: 'announcements', label: 'Annunci', icon: MessageSquare },
     { id: 'cards', label: 'Carte', icon: CreditCard },
     { id: 'accounting', label: 'Contabilità', icon: Receipt },
     { id: 'deadlines', label: 'Scadenze', icon: Bell },
