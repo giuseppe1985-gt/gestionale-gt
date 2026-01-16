@@ -19,15 +19,35 @@ export default function AnnouncementsView() {
 
   const loadAnnouncements = async () => {
     try {
+      // Carica tutti gli annunci
       const { data } = await supabase
         .from('announcements')
         .select('*, worksite:worksites!announcements_worksite_id_fkey(*)')
         .order('created_at', { ascending: false });
 
-      setAnnouncements(data || []);
+      // Filtra gli annunci in base al destinatario
+      const filteredAnnouncements = (data || []).filter(announcement => {
+        // Se è per tutti, mostra
+        if (announcement.target_audience === 'all') {
+          return true;
+        }
+        // Se è per un lavoratore specifico, mostra solo se è il lavoratore corrente
+        if (announcement.target_audience === 'worker') {
+          return announcement.target_worker_id === user?.id;
+        }
+        // Se è per un cantiere specifico, lo mostra (la logica esistente)
+        // Potresti voler aggiungere un filtro per verificare se l'utente è assegnato a quel cantiere
+        if (announcement.target_audience === 'specific') {
+          return true; // Mantieni il comportamento esistente
+        }
+        return true;
+      });
 
+      setAnnouncements(filteredAnnouncements);
+
+      // Segna come letti
       if (user) {
-        data?.forEach(async (announcement) => {
+        filteredAnnouncements.forEach(async (announcement) => {
           await supabase.from('announcement_reads').upsert({
             announcement_id: announcement.id,
             worker_id: user.id,
