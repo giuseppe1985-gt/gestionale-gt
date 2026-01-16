@@ -12,7 +12,6 @@ interface SendNotificationParams {
 export async function sendImmediateNotification(params: SendNotificationParams) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-
     if (!session) {
       console.error('No active session');
       return { success: false, error: 'No active session' };
@@ -50,26 +49,59 @@ export async function sendImmediateNotification(params: SendNotificationParams) 
   }
 }
 
-export async function notifyNewAnnouncement(announcementId: string, title: string, organizationId: string) {
-  const { data: users, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('organization_id', organizationId);
+interface NotifyAnnouncementParams {
+  announcementId: string;
+  title: string;
+  organizationId: string;
+  targetAudience: 'all' | 'specific' | 'worker';
+  targetWorkerId?: string | null;
+  targetWorksiteId?: string | null;
+}
 
-  if (error || !users) {
-    console.error('Error fetching users for announcement notification:', error);
-    return;
+export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
+  let userIds: string[] = [];
+
+  if (params.targetAudience === 'worker' && params.targetWorkerId) {
+    // Notifica solo al lavoratore specifico
+    userIds = [params.targetWorkerId];
+  } else if (params.targetAudience === 'specific' && params.targetWorksiteId) {
+    // Notifica a tutti i lavoratori assegnati al cantiere (opzionale, per ora tutti)
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('organization_id', params.organizationId);
+
+    if (error || !users) {
+      console.error('Error fetching users for announcement notification:', error);
+      return;
+    }
+    userIds = users.map(u => u.id);
+  } else {
+    // Notifica a tutti gli utenti dell'organizzazione
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('organization_id', params.organizationId);
+
+    if (error || !users) {
+      console.error('Error fetching users for announcement notification:', error);
+      return;
+    }
+    userIds = users.map(u => u.id);
   }
 
-  const userIds = users.map(u => u.id);
+  if (userIds.length === 0) {
+    console.log('No users to notify');
+    return;
+  }
 
   await sendImmediateNotification({
     type: 'announcement',
     userIds,
     title: 'Nuovo Annuncio',
-    body: title,
+    body: params.title,
     entityType: 'announcement',
-    entityId: announcementId,
+    entityId: params.announcementId,
   });
 }
 
@@ -97,7 +129,6 @@ export async function notifyLeaveRequest(adminIds: string[], workerName: string,
 
 export async function notifyLeaveResponse(workerId: string, status: 'approved' | 'rejected', leaveRequestId: string) {
   const statusText = status === 'approved' ? 'approvata' : 'rifiutata';
-
   await sendImmediateNotification({
     type: 'leave_response',
     userIds: [workerId],
