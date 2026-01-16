@@ -416,23 +416,30 @@ export default function ClientsManagement() {
                         </>
                       )}
                       {client.status === 'in_progress' && (
-                        <>
-                          <button
-                            onClick={() => handleEditClient(client)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Modifica Cliente"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleCompleteClient(client)}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Segna come Completato"
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
+  <>
+    <button
+      onClick={() => handleEditClient(client)}
+      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+      title="Modifica Cliente"
+    >
+      <Edit2 className="w-4 h-4" />
+    </button>
+    <button
+      onClick={() => handleCompleteClient(client)}
+      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+      title="Segna come Completato"
+    >
+      <CheckCircle className="w-5 h-5" />
+    </button>
+    <button
+      onClick={() => handleDeleteClient(client.id)}
+      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+      title="Elimina Cliente"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
+  </>
+)}
                     </div>
                   </div>
                 </div>
