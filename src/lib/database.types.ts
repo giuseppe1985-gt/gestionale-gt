@@ -226,8 +226,9 @@ export interface Database {
           title: string
           message: string
           priority: 'normal' | 'important' | 'urgent'
-          target_audience: 'all' | 'specific'
+          target_audience: 'all' | 'specific' | 'worker'
           target_worksite_id: string | null
+          target_worker_id: string | null
           attachment_url: string | null
           attachment_name: string | null
           expires_at: string | null
@@ -241,8 +242,9 @@ export interface Database {
           title: string
           message: string
           priority?: 'normal' | 'important' | 'urgent'
-          target_audience?: 'all' | 'specific'
+          target_audience?: 'all' | 'specific' | 'worker'
           target_worksite_id?: string | null
+          target_worker_id?: string | null
           attachment_url?: string | null
           attachment_name?: string | null
           expires_at?: string | null
@@ -256,8 +258,9 @@ export interface Database {
           title?: string
           message?: string
           priority?: 'normal' | 'important' | 'urgent'
-          target_audience?: 'all' | 'specific'
+          target_audience?: 'all' | 'specific' | 'worker'
           target_worksite_id?: string | null
+          target_worker_id?: string | null
           attachment_url?: string | null
           attachment_name?: string | null
           expires_at?: string | null
