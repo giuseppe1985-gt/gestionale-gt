@@ -191,15 +191,16 @@ const [searchText, setSearchText] = useState('');
     try {
       setLoading(true);
 
-      const [invoicesRes, scheduleRes, ribaRes, advancesRes, summaryRes, calculationsRes, wsInvoicesRes, wsExpensesRes] = await Promise.all([
+      const [invoicesRes, scheduleRes, ribaRes, advancesRes, summaryRes, calculationsRes, wsInvoicesRes, wsExpensesRes, worksitesRes] = await Promise.all([
   supabase.from('issued_invoices').select('*').order('due_date', { ascending: false }),
   supabase.from('payment_schedule').select('*').order('due_date', { ascending: false }),
   supabase.from('supplier_riba').select('*').order('due_date', { ascending: false }),
   supabase.from('invoice_advances').select('*').order('advance_date', { ascending: false }),
   supabase.from('monthly_cards_summary').select('*'),
-  supabase.from('invoice_calculations').select('*').order('invoice_date', { ascending: false }),
+  supabase.from('invoice_calculations').select('*, worksite:worksites(name)').order('invoice_date', { ascending: false }),
   supabase.from('worksite_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false }),
-  supabase.from('worksite_expense_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false })
+  supabase.from('worksite_expense_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false }),
+  supabase.from('worksites').select('id, name').order('name', { ascending: true })
 ]);
 
 if (invoicesRes.error) throw invoicesRes.error;
@@ -210,6 +211,7 @@ if (summaryRes.error) throw summaryRes.error;
 if (calculationsRes.error) throw calculationsRes.error;
 if (wsInvoicesRes.error) throw wsInvoicesRes.error;
 if (wsExpensesRes.error) throw wsExpensesRes.error;
+if (worksitesRes.error) throw worksitesRes.error;
 
 setIssuedInvoices(invoicesRes.data || []);
 setPaymentSchedule(scheduleRes.data || []);
@@ -219,6 +221,7 @@ setMonthlySummary(summaryRes.data || []);
 setInvoiceCalculations(calculationsRes.data || []);
 setWorksiteInvoices(wsInvoicesRes.data || []);
 setWorksiteExpenseInvoices(wsExpensesRes.data || []);
+setWorksites(worksitesRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Errore nel caricamento dei dati');
