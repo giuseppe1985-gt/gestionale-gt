@@ -7,13 +7,16 @@ import { notifyNewAnnouncement } from '../../lib/notifications';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'] & {
   worksite?: { name: string } | null;
+  target_worker?: { full_name: string } | null;
 };
 type Worksite = Database['public']['Tables']['worksites']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function AnnouncementsManagement() {
   const { user, profile } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [worksites, setWorksites] = useState<Worksite[]>([]);
+  const [workers, setWorkers] = useState<Profile[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -23,8 +26,9 @@ export default function AnnouncementsManagement() {
     title: '',
     message: '',
     priority: 'normal' as 'normal' | 'important' | 'urgent',
-    target_audience: 'all' as 'all' | 'specific',
+    target_audience: 'all' as 'all' | 'specific' | 'worker',
     target_worksite_id: '',
+    target_worker_id: '',
     expires_at: new Date().toISOString().split('T')[0],
   });
 
@@ -48,15 +52,26 @@ export default function AnnouncementsManagement() {
         .select('*')
         .order('name');
 
-      const announcementsWithWorksites = (announcementsData || []).map(announcement => ({
+      // Carica tutti i lavoratori (tutti i ruoli)
+      const { data: workersData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('status', 'active')
+        .order('full_name');
+
+      const announcementsWithDetails = (announcementsData || []).map(announcement => ({
         ...announcement,
         worksite: announcement.target_worksite_id
           ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
           : null,
+        target_worker: announcement.target_worker_id
+          ? workersData?.find(w => w.id === announcement.target_worker_id)
+          : null,
       }));
 
-      setAnnouncements(announcementsWithWorksites);
+      setAnnouncements(announcementsWithDetails);
       setWorksites(worksitesData || []);
+      setWorkers(workersData || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -99,6 +114,7 @@ export default function AnnouncementsManagement() {
         priority: formData.priority,
         target_audience: formData.target_audience,
         target_worksite_id: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
+        target_worker_id: formData.target_audience === 'worker' ? formData.target_worker_id : null,
         attachment_url: attachmentUrl,
         attachment_name: attachmentName,
         created_by: user?.id || '',
@@ -160,6 +176,7 @@ export default function AnnouncementsManagement() {
       priority: 'normal',
       target_audience: 'all',
       target_worksite_id: '',
+      target_worker_id: '',
       expires_at: new Date().toISOString().split('T')[0],
     });
     setSelectedFile(null);
@@ -228,6 +245,17 @@ export default function AnnouncementsManagement() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const getTargetLabel = (announcement: Announcement) => {
+    if (announcement.target_audience === 'all') {
+      return 'Tutti i lavoratori';
+    } else if (announcement.target_audience === 'worker' && announcement.target_worker) {
+      return `Lavoratore: ${announcement.target_worker.full_name}`;
+    } else if (announcement.target_audience === 'specific' && announcement.worksite) {
+      return `Cantiere: ${announcement.worksite.name}`;
+    }
+    return 'N/A';
   };
 
   if (loading) {
@@ -309,9 +337,7 @@ export default function AnnouncementsManagement() {
 
               <div className="flex items-center space-x-4 text-sm">
                 <span className="px-3 py-1 bg-white bg-opacity-50 rounded">
-                  {announcement.target_audience === 'all'
-                    ? 'Tutti i lavoratori'
-                    : `Cantiere: ${announcement.worksite?.name || 'N/A'}`}
+                  {getTargetLabel(announcement)}
                 </span>
               </div>
             </div>
@@ -416,7 +442,9 @@ export default function AnnouncementsManagement() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      target_audience: e.target.value as 'all' | 'specific',
+                      target_audience: e.target.value as 'all' | 'specific' | 'worker',
+                      target_worksite_id: '',
+                      target_worker_id: '',
                     })
                   }
                   className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
@@ -424,6 +452,7 @@ export default function AnnouncementsManagement() {
                 >
                   <option value="all">Tutti i lavoratori</option>
                   <option value="specific">Cantiere specifico</option>
+                  <option value="worker">Lavoratore specifico</option>
                 </select>
               </div>
 
@@ -445,6 +474,30 @@ export default function AnnouncementsManagement() {
                     {worksites.map((worksite) => (
                       <option key={worksite.id} value={worksite.id}>
                         {worksite.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {formData.target_audience === 'worker' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lavoratore *
+                  </label>
+                  <select
+                    value={formData.target_worker_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, target_worker_id: e.target.value })
+                    }
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
+                    required
+                  >
+                    <option value="">Seleziona lavoratore</option>
+                    {workers.map((worker) => (
+                      <option key={worker.id} value={worker.id}>
+                        {worker.full_name} {worker.position ? `(${worker.position})` : ''}
                       </option>
                     ))}
                   </select>
