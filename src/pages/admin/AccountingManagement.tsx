@@ -1385,34 +1385,40 @@ const { error } = await supabase.from('issued_invoices').insert({
           ))}
         </div>
         <div className="border-t border-green-300 pt-4 space-y-2">
-          <div className="flex justify-between items-center">
-            <p className="text-sm font-medium text-green-900">Totale Incassi:</p>
-            <p className="text-xl font-bold text-green-700">
-              {formatCurrency(
-                filterByDate(invoiceCalculations)
-                  .filter(c => c.type === 'income')
-                  .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
-                  .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
-                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
-                worksiteInvoices
-                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
-                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
-                  .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
-              )}
-            </p>
-          </div>
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-green-800">Totale IVA Vendite:</p>
-            <p className="text-lg font-semibold text-green-600">
-              {formatCurrency(
-                worksiteInvoices
-                  .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
-                  .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
-                  .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
-              )}
-            </p>
-          </div>
-        </div>
+  <div className="flex justify-between items-center">
+    <p className="text-sm font-medium text-green-900">Totale Incassi:</p>
+    <p className="text-xl font-bold text-green-700">
+      {formatCurrency(
+        filterByDate(invoiceCalculations)
+          .filter(c => c.type === 'income')
+          .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+          .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+          .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+        issuedInvoices
+          .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+          .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0) +
+        worksiteInvoices
+          .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+          .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+          .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+      )}
+    </p>
+  </div>
+  <div className="flex justify-between items-center">
+    <p className="text-sm text-green-800">Totale IVA Vendite:</p>
+    <p className="text-lg font-semibold text-green-600">
+      {formatCurrency(
+        issuedInvoices
+          .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+          .reduce((sum, i) => sum + (i.vat_amount || 0), 0) +
+        worksiteInvoices
+          .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+          .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+          .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
+      )}
+    </p>
+  </div>
+</div>
       </div>
 
       {/* FATTURE SPESE */}
