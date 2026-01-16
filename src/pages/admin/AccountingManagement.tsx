@@ -1601,6 +1601,9 @@ const { error } = await supabase.from('invoice_calculations').insert({
                 .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
                 .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                 .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              issuedInvoices
+                .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0) +
               worksiteInvoices
                 .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
                 .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
@@ -1633,6 +1636,9 @@ const { error } = await supabase.from('invoice_calculations').insert({
                 .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
                 .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
                 .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+              issuedInvoices
+                .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0) +
               worksiteInvoices
                 .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
                 .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
@@ -1653,30 +1659,61 @@ const { error } = await supabase.from('invoice_calculations').insert({
           <p className="text-sm text-gray-600">IVA Vendite - IVA Acquisti</p>
           <p className="text-lg font-bold text-emerald-700">
             {formatCurrency(
+              (filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'income')
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, c) => sum + (c.vat_amount || 0), 0) +
+              issuedInvoices
+                .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0) +
               worksiteInvoices
                 .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
                 .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
-                .reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0)) -
+              (filterByDate(invoiceCalculations)
+                .filter(c => c.type === 'expense')
+                .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+                .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, c) => sum + (c.vat_amount || 0), 0) +
               worksiteExpenseInvoices
                 .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
                 .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
-                .reduce((sum, i) => sum + (i.vat_amount || 0), 0)
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0))
             )}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Totale IVA</p>
-          <p className={`text-xl font-bold ${
-            (worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
-            worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)) >= 0 
-            ? 'text-red-600' : 'text-green-600'
-          }`}>
-            {(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) -
-            worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)) >= 0 
-            ? `Da versare: ${formatCurrency(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) - worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0))}`
-            : `A credito: ${formatCurrency(Math.abs(worksiteInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0) - worksiteExpenseInvoices.filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter).filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase())).reduce((sum, i) => sum + (i.vat_amount || 0), 0)))}`
-            }
-          </p>
+          {(() => {
+            const ivaVendite = filterByDate(invoiceCalculations)
+              .filter(c => c.type === 'income')
+              .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+              .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+              .reduce((sum, c) => sum + (c.vat_amount || 0), 0) +
+              issuedInvoices
+                .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0) +
+              worksiteInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0);
+            const ivaAcquisti = filterByDate(invoiceCalculations)
+              .filter(c => c.type === 'expense')
+              .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
+              .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
+              .reduce((sum, c) => sum + (c.vat_amount || 0), 0) +
+              worksiteExpenseInvoices
+                .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
+                .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, i) => sum + (i.vat_amount || 0), 0);
+            const totaleIva = ivaVendite - ivaAcquisti;
+            return (
+              <p className={`text-xl font-bold ${totaleIva >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {totaleIva >= 0 ? `Da versare: ${formatCurrency(totaleIva)}` : `A credito: ${formatCurrency(Math.abs(totaleIva))}`}
+              </p>
+            );
+          })()}
         </div>
       </div>
     </div>
