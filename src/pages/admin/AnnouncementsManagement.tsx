@@ -125,12 +125,15 @@ export default function AnnouncementsManagement() {
       if (error) throw error;
 
       if (newAnnouncement && profile?.organization_id) {
-        await notifyNewAnnouncement(
-          newAnnouncement.id,
-          formData.title,
-          profile.organization_id
-        );
-      }
+  await notifyNewAnnouncement({
+    announcementId: newAnnouncement.id,
+    title: formData.title,
+    organizationId: profile.organization_id,
+    targetAudience: formData.target_audience,
+    targetWorkerId: formData.target_audience === 'worker' ? formData.target_worker_id : null,
+    targetWorksiteId: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
+  });
+}
 
       setShowModal(false);
       resetForm();
