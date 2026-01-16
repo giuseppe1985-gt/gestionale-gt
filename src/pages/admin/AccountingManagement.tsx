@@ -2140,6 +2140,21 @@ setWorksites(worksitesRes.data || []);
                     required
                   />
                 </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cantiere (opzionale)
+                  </label>
+                  <select
+                    value={calculationForm.worksite_id}
+                    onChange={(e) => setCalculationForm({ ...calculationForm, worksite_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">-- Nessun cantiere --</option>
+                    {worksites.map((ws) => (
+                      <option key={ws.id} value={ws.id}>{ws.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
