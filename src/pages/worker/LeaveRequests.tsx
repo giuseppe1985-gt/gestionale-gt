@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Plus, Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Upload } from 'lucide-react';
+import { Plus, Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Upload, CalendarClock } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyLeaveRequest } from '../../lib/notifications';
 
@@ -20,11 +20,12 @@ export default function LeaveRequests() {
   const [certificate, setCertificate] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
-    request_type: 'vacation' as 'vacation' | 'rol' | 'sick_leave',
+    request_type: 'vacation' as 'vacation' | 'rol' | 'sick_leave' | 'appointment',
     start_date: '',
     end_date: '',
     hours_requested: 8,
     reason: '',
+    appointment_time: '',
   });
 
   useEffect(() => {
@@ -82,6 +83,14 @@ export default function LeaveRequests() {
         hoursToRequest = days * 8;
       }
 
+      if (formData.request_type === 'appointment') {
+        if (!formData.start_date || !formData.appointment_time) {
+          alert('Seleziona data e ora dell\'appuntamento');
+          return;
+        }
+        hoursToRequest = 0; // Gli appuntamenti non scalano ore
+      }
+
       if (formData.request_type === 'vacation' && balance && hoursToRequest > balance.vacation_hours) {
         alert('Non hai abbastanza ore di ferie disponibili');
         return;
@@ -131,6 +140,11 @@ export default function LeaveRequests() {
         requestData.end_date = formData.end_date;
       }
 
+      if (formData.request_type === 'appointment') {
+        requestData.start_date = formData.start_date;
+        requestData.appointment_time = formData.appointment_time;
+      }
+
       if (formData.reason) {
         requestData.reason = formData.reason;
       }
@@ -178,6 +192,7 @@ export default function LeaveRequests() {
       end_date: '',
       hours_requested: 8,
       reason: '',
+      appointment_time: '',
     });
     setCertificate(null);
   };
@@ -190,11 +205,16 @@ export default function LeaveRequests() {
     });
   };
 
+  const formatTime = (time: string) => {
+    return time.substring(0, 5); // Mostra solo HH:MM
+  };
+
   const getRequestTypeLabel = (type: string) => {
     switch (type) {
       case 'vacation': return 'Ferie';
       case 'rol': return 'ROL';
       case 'sick_leave': return 'Malattia';
+      case 'appointment': return 'Appuntamento';
       default: return type;
     }
   };
@@ -240,7 +260,7 @@ export default function LeaveRequests() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Richieste Permessi</h1>
-          <p className="text-gray-600 mt-1">Gestisci le tue richieste di ferie e ROL</p>
+          <p className="text-gray-600 mt-1">Gestisci le tue richieste di ferie, ROL e appuntamenti</p>
         </div>
         <button
           onClick={() => {
@@ -308,9 +328,18 @@ export default function LeaveRequests() {
                       {getRequestTypeLabel(request.request_type)}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {request.hours_requested} ore
-                      {request.start_date && request.end_date && (
-                        <> · {formatDate(request.start_date)} - {formatDate(request.end_date)}</>
+                      {request.request_type === 'appointment' ? (
+                        <>
+                          {request.start_date && formatDate(request.start_date)}
+                          {request.appointment_time && ` alle ${formatTime(request.appointment_time)}`}
+                        </>
+                      ) : (
+                        <>
+                          {request.hours_requested} ore
+                          {request.start_date && request.end_date && (
+                            <> · {formatDate(request.start_date)} - {formatDate(request.end_date)}</>
+                          )}
+                        </>
                       )}
                     </p>
                   </div>
@@ -339,17 +368,24 @@ export default function LeaveRequests() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Richiesta</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo di Permesso *
+                  Tipo di Richiesta *
                 </label>
                 <select
                   value={formData.request_type}
                   onChange={(e) => {
-                    setFormData({ ...formData, request_type: e.target.value as any });
+                    setFormData({ 
+                      ...formData, 
+                      request_type: e.target.value as any,
+                      start_date: '',
+                      end_date: '',
+                      appointment_time: '',
+                      reason: '',
+                    });
                     setCertificate(null);
                   }}
                   className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
@@ -359,8 +395,52 @@ export default function LeaveRequests() {
                   <option value="vacation">Ferie</option>
                   <option value="rol">ROL</option>
                   <option value="sick_leave">Malattia</option>
+                  <option value="appointment">Appuntamento</option>
                 </select>
               </div>
+
+              {formData.request_type === 'appointment' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Data Appuntamento *
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ora Appuntamento *
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.appointment_time}
+                      onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Note
+                    </label>
+                    <textarea
+                      value={formData.reason}
+                      onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                      placeholder="Inserisci eventuali dettagli sull'appuntamento..."
+                    />
+                  </div>
+                </>
+              )}
 
               {(formData.request_type === 'vacation' || formData.request_type === 'sick_leave') && (
                 <>
@@ -444,39 +524,56 @@ export default function LeaveRequests() {
               )}
 
               {formData.request_type === 'rol' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ore Richieste *
-                  </label>
-                  <select
-                    value={formData.hours_requested}
-                    onChange={(e) =>
-                      setFormData({ ...formData, hours_requested: Number(e.target.value) })
-                    }
-                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
-                    style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
-                    required
-                  >
-                    {Array.from({ length: 24 }, (_, i) => i + 1).map(num => (
-                      <option key={num} value={num}>{num} ore</option>
-                    ))}
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ore Richieste *
+                    </label>
+                    <select
+                      value={formData.hours_requested}
+                      onChange={(e) =>
+                        setFormData({ ...formData, hours_requested: Number(e.target.value) })
+                      }
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
+                      required
+                    >
+                      {Array.from({ length: 24 }, (_, i) => i + 1).map(num => (
+                        <option key={num} value={num}>{num} ore</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Motivazione *
+                    </label>
+                    <textarea
+                      value={formData.reason}
+                      onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                      placeholder="Specifica il motivo della richiesta..."
+                      required
+                    />
+                  </div>
+                </>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Motivazione {formData.request_type === 'rol' && '*'}
-                </label>
-                <textarea
-                  value={formData.reason}
-                  onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                  placeholder="Specifica il motivo della richiesta..."
-                  required={formData.request_type === 'rol'}
-                />
-              </div>
+              {(formData.request_type === 'vacation' || formData.request_type === 'sick_leave') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Motivazione
+                  </label>
+                  <textarea
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
+                    placeholder="Specifica il motivo della richiesta..."
+                  />
+                </div>
+              )}
 
               <div className="flex space-x-3 pt-4">
                 <button
