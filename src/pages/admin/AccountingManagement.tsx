@@ -98,6 +98,8 @@ interface InvoiceCalculation {
   invoice_date: string;
   client_name: string;
   amount: number;
+  vat_rate: number;
+  vat_amount: number;
   worksite_id: string | null;
   worksite?: {
     name: string;
@@ -182,6 +184,7 @@ const [searchText, setSearchText] = useState('');
   invoice_date: new Date().toISOString().split('T')[0],
   client_name: '',
   amount: '',
+  vat_rate: '22',
   worksite_id: ''
 });
 
@@ -539,12 +542,18 @@ const { error } = await supabase.from('issued_invoices').insert({
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from('invoice_calculations').insert({
+      const amount = parseFloat(calculationForm.amount);
+const vatRate = parseInt(calculationForm.vat_rate);
+const vatAmount = vatRate === 0 ? 0 : amount - (amount / (1 + vatRate / 100));
+
+const { error } = await supabase.from('invoice_calculations').insert({
   type: calculationForm.type,
   invoice_number: calculationForm.invoice_number,
   invoice_date: calculationForm.invoice_date,
   client_name: calculationForm.client_name,
-  amount: parseFloat(calculationForm.amount),
+  amount: amount,
+  vat_rate: vatRate,
+  vat_amount: vatAmount,
   worksite_id: calculationForm.worksite_id || null,
   organization_id: profile?.organization_id,
   created_by: profile?.id
@@ -586,6 +595,7 @@ const { error } = await supabase.from('issued_invoices').insert({
     invoice_date: new Date().toISOString().split('T')[0],
     client_name: '',
     amount: '',
+    vat_rate: '22',
     worksite_id: ''
   });
 };
