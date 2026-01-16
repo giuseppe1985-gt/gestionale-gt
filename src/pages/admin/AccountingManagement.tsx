@@ -530,14 +530,15 @@ setWorksites(worksitesRes.data || []);
 
     try {
       const { error } = await supabase.from('invoice_calculations').insert({
-        type: calculationForm.type,
-        invoice_number: calculationForm.invoice_number,
-        invoice_date: calculationForm.invoice_date,
-        client_name: calculationForm.client_name,
-        amount: parseFloat(calculationForm.amount),
-        organization_id: profile?.organization_id,
-        created_by: profile?.id
-      });
+  type: calculationForm.type,
+  invoice_number: calculationForm.invoice_number,
+  invoice_date: calculationForm.invoice_date,
+  client_name: calculationForm.client_name,
+  amount: parseFloat(calculationForm.amount),
+  worksite_id: calculationForm.worksite_id || null,
+  organization_id: profile?.organization_id,
+  created_by: profile?.id
+});
 
       if (error) throw error;
 
