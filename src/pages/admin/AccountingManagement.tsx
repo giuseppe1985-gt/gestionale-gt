@@ -96,7 +96,16 @@ interface InvoiceCalculation {
   invoice_date: string;
   client_name: string;
   amount: number;
+  worksite_id: string | null;
+  worksite?: {
+    name: string;
+  };
   created_at: string;
+}
+
+interface Worksite {
+  id: string;
+  name: string;
 }
 
 type TimeFilter = 'all' | 'past' | 'today' | 'week' | 'month' | 'future' | 'custom';
@@ -114,6 +123,9 @@ export default function AccountingManagement() {
   const [invoiceCalculations, setInvoiceCalculations] = useState<InvoiceCalculation[]>([]);
 const [worksiteInvoices, setWorksiteInvoices] = useState<WorksiteInvoice[]>([]);
 const [worksiteExpenseInvoices, setWorksiteExpenseInvoices] = useState<WorksiteExpenseInvoice[]>([]);
+  const [worksites, setWorksites] = useState<Worksite[]>([]);
+const [selectedWorksiteFilter, setSelectedWorksiteFilter] = useState<string>('');
+const [searchText, setSearchText] = useState('');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
