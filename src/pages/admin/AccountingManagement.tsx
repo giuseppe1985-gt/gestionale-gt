@@ -925,22 +925,25 @@ const { error } = await supabase.from('issued_invoices').insert({
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100"
                     >
                       <div className="flex-1">
-                        <div className="flex items-center gap-4">
-                          <p className="font-semibold text-gray-900">{invoice.invoice_number}</p>
-                          <p className="text-sm text-gray-600">{invoice.client_name}</p>
-                          <p className="font-bold text-blue-600">{formatCurrency(parseFloat(invoice.amount.toString()))}</p>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(invoice.payment_status, 'invoice')}`}>
-                            {getStatusLabel(invoice.payment_status, 'invoice')}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                          <span>Emessa: {formatDate(invoice.issue_date)}</span>
-                          <span className={isOverdue(invoice.due_date) && invoice.payment_status === 'pending' ? 'text-red-600 font-semibold' : ''}>
-                            Scadenza: {formatDate(invoice.due_date)}
-                          </span>
-                          {invoice.notes && <span className="text-xs italic">Note: {invoice.notes}</span>}
-                        </div>
-                      </div>
+  <div className="flex items-center gap-4 flex-wrap">
+    <p className="font-semibold text-gray-900">{invoice.invoice_number}</p>
+    <p className="text-sm text-gray-600">{invoice.client_name}</p>
+    <p className="font-bold text-blue-600">{formatCurrency(parseFloat(invoice.amount.toString()))}</p>
+    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+      IVA {invoice.vat_rate || 22}% = {formatCurrency(invoice.vat_amount || 0)}
+    </span>
+    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(invoice.payment_status, 'invoice')}`}>
+      {getStatusLabel(invoice.payment_status, 'invoice')}
+    </span>
+  </div>
+  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+    <span>Emessa: {formatDate(invoice.issue_date)}</span>
+    <span className={isOverdue(invoice.due_date) && invoice.payment_status === 'pending' ? 'text-red-600 font-semibold' : ''}>
+      Scadenza: {formatDate(invoice.due_date)}
+    </span>
+    {invoice.notes && <span className="text-xs italic">Note: {invoice.notes}</span>}
+  </div>
+</div>
                       <div className="flex items-center gap-2">
                         <select
                           value={invoice.payment_status}
@@ -1345,6 +1348,24 @@ const { error } = await supabase.from('issued_invoices').insert({
               </div>
             </div>
           ))}
+          {/* Fatture Emesse dalla tab principale */}
+          {issuedInvoices
+            .filter(inv => !searchText || inv.client_name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((inv) => (
+            <div key={`issued-${inv.id}`} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{inv.invoice_number}</p>
+                <p className="text-xs text-gray-600">{inv.client_name}</p>
+                <p className="text-xs text-gray-500">{formatDate(inv.issue_date)}</p>
+                <span className="text-xs bg-blue-200 text-blue-800 px-1 rounded">IVA {inv.vat_rate || 22}%</span>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-blue-600">{formatCurrency(parseFloat(inv.amount.toString()))}</p>
+                <p className="text-xs text-blue-700">IVA: {formatCurrency(inv.vat_amount || 0)}</p>
+              </div>
+            </div>
+          ))}
+          {/* Fatture dai cantieri */}
           {worksiteInvoices
             .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
             .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
