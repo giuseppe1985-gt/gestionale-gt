@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { CheckCircle, XCircle, Clock, Calendar, FileText, AlertCircle, Download } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Calendar, FileText, AlertCircle, Download, CalendarClock } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyLeaveResponse } from '../../lib/notifications';
 
@@ -81,12 +81,27 @@ export default function LeaveRequestsApproval() {
     });
   };
 
+  const formatTime = (time: string) => {
+    return time.substring(0, 5); // Mostra solo HH:MM
+  };
+
   const getRequestTypeLabel = (type: string) => {
     switch (type) {
       case 'vacation': return 'Ferie';
       case 'rol': return 'ROL';
       case 'sick_leave': return 'Malattia';
+      case 'appointment': return 'Appuntamento';
       default: return type;
+    }
+  };
+
+  const getRequestTypeColor = (type: string) => {
+    switch (type) {
+      case 'vacation': return 'bg-blue-50';
+      case 'rol': return 'bg-green-50';
+      case 'sick_leave': return 'bg-red-50';
+      case 'appointment': return 'bg-purple-50';
+      default: return 'bg-gray-50';
     }
   };
 
@@ -130,11 +145,11 @@ export default function LeaveRequestsApproval() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Gestione Richieste Permessi</h1>
-        <p className="text-gray-600 mt-1">Approva o rifiuta le richieste di ferie, ROL e malattia</p>
+        <p className="text-gray-600 mt-1">Approva o rifiuta le richieste di ferie, ROL, malattia e appuntamenti</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-4">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 flex-wrap gap-2">
           <button
             onClick={() => setFilter('pending')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -204,34 +219,51 @@ export default function LeaveRequestsApproval() {
               </div>
 
               <div className="space-y-3">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Tipo di Permesso</p>
+                <div className={`p-3 rounded-lg ${getRequestTypeColor(request.request_type)}`}>
+                  <p className="text-sm text-gray-600 mb-1">Tipo di Richiesta</p>
                   <p className="font-semibold text-gray-900">{getRequestTypeLabel(request.request_type)}</p>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Ore Richieste</p>
-                    <p className="font-medium text-gray-900">{request.hours_requested} ore</p>
-                  </div>
-                </div>
-
-                {request.start_date && request.end_date && (
+                {request.request_type === 'appointment' ? (
                   <div className="flex items-center space-x-2">
-                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <CalendarClock className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Periodo</p>
+                      <p className="text-sm text-gray-600">Data e Ora</p>
                       <p className="font-medium text-gray-900">
-                        {formatDate(request.start_date)} - {formatDate(request.end_date)}
+                        {request.start_date && formatDate(request.start_date)}
+                        {request.appointment_time && ` alle ${formatTime(request.appointment_time)}`}
                       </p>
                     </div>
                   </div>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-600">Ore Richieste</p>
+                        <p className="font-medium text-gray-900">{request.hours_requested} ore</p>
+                      </div>
+                    </div>
+
+                    {request.start_date && request.end_date && (
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-600">Periodo</p>
+                          <p className="font-medium text-gray-900">
+                            {formatDate(request.start_date)} - {formatDate(request.end_date)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {request.reason && (
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Motivazione</p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      {request.request_type === 'appointment' ? 'Note' : 'Motivazione'}
+                    </p>
                     <p className="text-sm text-gray-900">{request.reason}</p>
                   </div>
                 )}
@@ -293,7 +325,7 @@ export default function LeaveRequestsApproval() {
           <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
           <div className="text-sm text-gray-700">
             <p className="font-semibold mb-1">Nota importante:</p>
-            <p>Quando approvi una richiesta, le ore vengono automaticamente scalate dal monte ore del lavoratore. Assicurati che il lavoratore abbia abbastanza ore disponibili prima di approvare.</p>
+            <p>Quando approvi una richiesta di ferie o ROL, le ore vengono automaticamente scalate dal monte ore del lavoratore. Gli appuntamenti non scalano ore.</p>
           </div>
         </div>
       </div>
