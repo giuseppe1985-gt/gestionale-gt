@@ -339,9 +339,17 @@ export default function WorkersManagement() {
                 <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        {worker.full_name.split(' ').map(n => n[0]).join('')}
-                      </div>
+                      {worker.avatar_url ? (
+                        <img
+                          src={worker.avatar_url}
+                          alt={worker.full_name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {worker.full_name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                      )}
                       <div className="ml-4">
                         <p className="font-medium text-gray-900">{worker.full_name}</p>
                       </div>
@@ -421,14 +429,17 @@ export default function WorkersManagement() {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Cambia Password
             </h2>
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900">
-                <strong>Utente:</strong> {passwordChangeWorker?.full_name}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                Stai modificando la password per:
               </p>
-              <p className="text-sm text-blue-800 mt-1">
+              <p className="font-semibold text-gray-900">
+                {passwordChangeWorker?.full_name}
+              </p>
+              <p className="text-sm text-gray-500">
                 {passwordChangeWorker?.email}
               </p>
             </div>
