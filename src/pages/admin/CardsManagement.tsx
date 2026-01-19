@@ -21,6 +21,8 @@ type CardTransaction = Database['public']['Tables']['card_transactions']['Row'];
 interface CardWithTransactions extends PaymentCard {
   transactions?: CardTransaction[];
   monthlyTotal?: number;
+  monthlyVat?: number;      // IVA inclusa nel totale (22%)
+  monthlyTaxable?: number;  // Imponibile (totale - IVA)
 }
 
 export default function CardsManagement() {
@@ -77,11 +79,16 @@ export default function CardsManagement() {
               .order('transaction_date', { ascending: false });
 
             const monthlyTotal = transactions?.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
+            // IVA 22% inclusa nel totale: imponibile = totale / 1.22, IVA = totale - imponibile
+            const monthlyTaxable = monthlyTotal / 1.22;
+            const monthlyVat = monthlyTotal - monthlyTaxable;
 
             return {
               ...card,
               transactions: transactions || [],
               monthlyTotal,
+              monthlyTaxable,
+              monthlyVat,
             };
           })
         );
@@ -171,6 +178,10 @@ export default function CardsManagement() {
         });
       }
 
+      // Sincronizza il mese della transazione con la contabilità
+      const transactionDate = new Date(transactionForm.transaction_date);
+      await syncSpecificMonthWithAccounting(transactionDate.getFullYear(), transactionDate.getMonth());
+
       setTransactionForm({
         amount: '',
         transaction_date: new Date().toISOString().split('T')[0],
@@ -188,7 +199,22 @@ export default function CardsManagement() {
   const handleDeleteTransaction = async (id: string) => {
     if (!confirm('Sei sicuro di voler eliminare questa transazione?')) return;
     try {
+      // Prima recupera la transazione per ottenere la data
+      const { data: transaction } = await supabase
+        .from('card_transactions')
+        .select('transaction_date')
+        .eq('id', id)
+        .single();
+      
+      // Elimina la transazione
       await supabase.from('card_transactions').delete().eq('id', id);
+      
+      // Sincronizza il mese della transazione eliminata
+      if (transaction) {
+        const transactionDate = new Date(transaction.transaction_date);
+        await syncSpecificMonthWithAccounting(transactionDate.getFullYear(), transactionDate.getMonth());
+      }
+      
       loadCards();
     } catch (error) {
       console.error('Error deleting transaction:', error);
@@ -251,6 +277,185 @@ export default function CardsManagement() {
   };
 
   const grandTotal = cards.reduce((sum, card) => sum + (card.monthlyTotal || 0), 0);
+  const grandTotalVat = cards.reduce((sum, card) => sum + (card.monthlyVat || 0), 0);
+  const grandTotalTaxable = cards.reduce((sum, card) => sum + (card.monthlyTaxable || 0), 0);
+
+  // Sincronizza un mese specifico con la contabilità
+  const syncSpecificMonthWithAccounting = async (year: number, month: number) => {
+    if (!profile?.organization_id) return;
+    
+    try {
+      // Calcola le date del mese specifico
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
+      
+      // Carica tutte le transazioni per questo mese specifico
+      const { data: allCards } = await supabase
+        .from('payment_cards')
+        .select('id')
+        .eq('is_active', true);
+      
+      if (!allCards || allCards.length === 0) return;
+      
+      const cardIds = allCards.map(c => c.id);
+      
+      const { data: transactions } = await supabase
+        .from('card_transactions')
+        .select('amount')
+        .in('card_id', cardIds)
+        .gte('transaction_date', startDate.toISOString().split('T')[0])
+        .lte('transaction_date', endDate.toISOString().split('T')[0]);
+      
+      const monthTotal = transactions?.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
+      const monthTaxable = monthTotal / 1.22;
+      const monthVat = monthTotal - monthTaxable;
+      
+      const monthYear = `${year}-${String(month + 1).padStart(2, '0')}`;
+      const invoiceNumber = `CARTE-${monthYear}`;
+      
+      // Controlla se esiste già una fattura per questo mese
+      const { data: existing } = await supabase
+        .from('invoice_calculations')
+        .select('id')
+        .eq('invoice_number', invoiceNumber)
+        .maybeSingle();
+
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      
+      const invoiceData = {
+        organization_id: profile.organization_id,
+        type: 'expense' as const,
+        invoice_number: invoiceNumber,
+        invoice_date: lastDayOfMonth.toISOString().split('T')[0],
+        client_name: 'Carte e Telepass Aziendali',
+        amount: monthTaxable,
+        vat_rate: 22,
+        vat_amount: monthVat,
+      };
+
+      if (monthTotal <= 0) {
+        if (existing) {
+          await supabase
+            .from('invoice_calculations')
+            .delete()
+            .eq('id', existing.id);
+        }
+        return;
+      }
+
+      if (existing) {
+        await supabase
+          .from('invoice_calculations')
+          .update(invoiceData)
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('invoice_calculations')
+          .insert(invoiceData);
+      }
+    } catch (error) {
+      console.error('Error syncing specific month with accounting:', error);
+    }
+  };
+
+  // Sincronizza con la contabilità - aggiorna/crea fattura spese per carte (mese visualizzato)
+  const syncWithAccounting = async () => {
+    if (!profile?.organization_id) return;
+    
+    const monthYear = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+    const invoiceNumber = `CARTE-${monthYear}`;
+    
+    try {
+      // Controlla se esiste già una fattura per questo mese
+      const { data: existing } = await supabase
+        .from('invoice_calculations')
+        .select('id')
+        .eq('invoice_number', invoiceNumber)
+        .maybeSingle();
+
+      // Data fattura = ultimo giorno del mese selezionato
+      const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
+      
+      const invoiceData = {
+        organization_id: profile.organization_id,
+        type: 'expense' as const,
+        invoice_number: invoiceNumber,
+        invoice_date: lastDayOfMonth.toISOString().split('T')[0],
+        client_name: 'Carte e Telepass Aziendali',
+        amount: grandTotalTaxable,
+        vat_rate: 22,
+        vat_amount: grandTotalVat,
+      };
+
+      if (grandTotal <= 0) {
+        // Se il totale è 0, elimina la fattura esistente se c'è
+        if (existing) {
+          await supabase
+            .from('invoice_calculations')
+            .delete()
+            .eq('id', existing.id);
+        }
+        return;
+      }
+
+      if (existing) {
+        // Aggiorna fattura esistente
+        await supabase
+          .from('invoice_calculations')
+          .update(invoiceData)
+          .eq('id', existing.id);
+      } else {
+        // Crea nuova fattura
+        await supabase
+          .from('invoice_calculations')
+          .insert(invoiceData);
+      }
+    } catch (error) {
+      console.error('Error syncing with accounting:', error);
+    }
+  };
+
+  // Sincronizza automaticamente quando cambiano i totali o il mese
+  useEffect(() => {
+    if (!loading && profile?.organization_id) {
+      syncWithAccounting();
+    }
+  }, [grandTotal, grandTotalVat, grandTotalTaxable, selectedMonth, selectedYear, loading, profile?.organization_id]);
+
+  // Sincronizza tutti i mesi con transazioni esistenti (una volta all'avvio)
+  useEffect(() => {
+    const syncAllMonthsWithTransactions = async () => {
+      if (!profile?.organization_id) return;
+      
+      try {
+        // Trova tutti i mesi distinti che hanno transazioni
+        const { data: transactions } = await supabase
+          .from('card_transactions')
+          .select('transaction_date');
+        
+        if (!transactions || transactions.length === 0) return;
+        
+        // Estrai mesi unici
+        const uniqueMonths = new Set<string>();
+        transactions.forEach(t => {
+          const date = new Date(t.transaction_date);
+          uniqueMonths.add(`${date.getFullYear()}-${date.getMonth()}`);
+        });
+        
+        // Sincronizza ogni mese
+        for (const monthKey of uniqueMonths) {
+          const [year, month] = monthKey.split('-').map(Number);
+          await syncSpecificMonthWithAccounting(year, month);
+        }
+      } catch (error) {
+        console.error('Error syncing all months:', error);
+      }
+    };
+    
+    if (profile?.organization_id) {
+      syncAllMonthsWithTransactions();
+    }
+  }, [profile?.organization_id]);
 
   if (loading) {
     return (
@@ -302,13 +507,25 @@ export default function CardsManagement() {
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+        <div className="bg-white border-l-4 border-l-emerald-500 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Totale Spese Mensili</p>
-              <p className="text-4xl font-bold mt-2">{grandTotal.toFixed(2)} €</p>
+            <div className="space-y-3">
+              <div>
+                <p className="text-emerald-600 text-sm font-medium">Totale Spese Mensili (IVA inclusa)</p>
+                <p className="text-4xl font-bold mt-1 text-emerald-600">{grandTotal.toFixed(2)} €</p>
+              </div>
+              <div className="flex gap-6 pt-2 border-t border-gray-200">
+                <div>
+                  <p className="text-gray-500 text-xs">Imponibile</p>
+                  <p className="text-lg font-semibold text-gray-900">{grandTotalTaxable.toFixed(2)} €</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">IVA 22%</p>
+                  <p className="text-lg font-semibold text-amber-500">{grandTotalVat.toFixed(2)} €</p>
+                </div>
+              </div>
             </div>
-            <DollarSign className="w-16 h-16 text-green-200 opacity-50" />
+            <DollarSign className="w-16 h-16 text-emerald-500/30" />
           </div>
         </div>
       </div>
@@ -353,8 +570,12 @@ export default function CardsManagement() {
                     </div>
                   </div>
                   <div className="mt-6">
-                    <p className="text-blue-100 text-sm">Totale Mensile</p>
+                    <p className="text-blue-100 text-sm">Totale Mensile (IVA inclusa)</p>
                     <p className="text-3xl font-bold mt-1">{card.monthlyTotal?.toFixed(2)} €</p>
+                    <div className="flex gap-4 mt-2 text-blue-200 text-xs">
+                      <span>Imponibile: {card.monthlyTaxable?.toFixed(2)} €</span>
+                      <span>IVA 22%: {card.monthlyVat?.toFixed(2)} €</span>
+                    </div>
                   </div>
                 </div>
 
