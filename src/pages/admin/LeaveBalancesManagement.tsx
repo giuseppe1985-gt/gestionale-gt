@@ -130,9 +130,17 @@ export default function LeaveBalancesManagement() {
                   <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                          {worker.full_name.split(' ').map(n => n[0]).join('')}
-                        </div>
+                        {worker.avatar_url ? (
+                          <img
+                            src={worker.avatar_url}
+                            alt={worker.full_name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                            {worker.full_name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                        )}
                         <div>
                           <p className="font-medium text-gray-900">{worker.full_name}</p>
                           <p className="text-sm text-gray-600">{worker.position}</p>
