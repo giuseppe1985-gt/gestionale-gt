@@ -313,11 +313,12 @@ export default function CardsManagement() {
       const monthYear = `${year}-${String(month + 1).padStart(2, '0')}`;
       const invoiceNumber = `CARTE-${monthYear}`;
       
-      // Controlla se esiste già una fattura per questo mese
+      // Controlla se esiste già una fattura per questo mese E organizzazione
       const { data: existing } = await supabase
         .from('invoice_calculations')
         .select('id')
         .eq('invoice_number', invoiceNumber)
+        .eq('organization_id', profile.organization_id)
         .maybeSingle();
 
       const lastDayOfMonth = new Date(year, month + 1, 0);
@@ -366,11 +367,12 @@ export default function CardsManagement() {
     const invoiceNumber = `CARTE-${monthYear}`;
     
     try {
-      // Controlla se esiste già una fattura per questo mese
+      // Controlla se esiste già una fattura per questo mese E organizzazione
       const { data: existing } = await supabase
         .from('invoice_calculations')
         .select('id')
         .eq('invoice_number', invoiceNumber)
+        .eq('organization_id', profile.organization_id)
         .maybeSingle();
 
       // Data fattura = ultimo giorno del mese selezionato
