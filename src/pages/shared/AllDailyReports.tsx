@@ -32,7 +32,8 @@ export default function AllDailyReports() {
   const [filteredReports, setFilteredReports] = useState<DailyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [worksiteFilter, setWorksiteFilter] = useState('');
   const [workerFilter, setWorkerFilter] = useState('');
 
@@ -45,7 +46,7 @@ export default function AllDailyReports() {
 
   useEffect(() => {
     filterReports();
-  }, [reports, searchTerm, dateFilter, worksiteFilter, workerFilter]);
+  }, [reports, searchTerm, dateFrom, dateTo, worksiteFilter, workerFilter]);
 
   const loadData = async () => {
     try {
@@ -99,8 +100,14 @@ export default function AllDailyReports() {
       );
     }
 
-    if (dateFilter) {
-      filtered = filtered.filter((r) => r.report_date === dateFilter);
+    // Filtro data DA
+    if (dateFrom) {
+      filtered = filtered.filter((r) => r.report_date >= dateFrom);
+    }
+
+    // Filtro data A
+    if (dateTo) {
+      filtered = filtered.filter((r) => r.report_date <= dateTo);
     }
 
     if (worksiteFilter) {
@@ -114,9 +121,27 @@ export default function AllDailyReports() {
     setFilteredReports(filtered);
   };
 
+  const setCurrentMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    // Formato YYYY-MM-DD senza problemi di fuso orario
+    const formatDateLocal = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    setDateFrom(formatDateLocal(firstDay));
+    setDateTo(formatDateLocal(lastDay));
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
-    setDateFilter('');
+    setDateFrom('');
+    setDateTo('');
     setWorksiteFilter('');
     setWorkerFilter('');
   };
@@ -132,6 +157,34 @@ export default function AllDailyReports() {
 
   const formatTime = (timeString: string) => {
     return timeString.substring(0, 5);
+  };
+
+  // Calcolo totale ore per cantiere selezionato
+  const getTotalHoursForWorksite = () => {
+    if (!worksiteFilter) return 0;
+    return filteredReports
+      .filter(r => r.worksite_id === worksiteFilter)
+      .reduce((sum, r) => sum + (r.hours_worked || 0), 0);
+  };
+
+  // Calcolo totale ore per lavoratore selezionato
+  const getTotalHoursForWorker = () => {
+    if (!workerFilter) return 0;
+    return filteredReports
+      .filter(r => r.worker_id === workerFilter)
+      .reduce((sum, r) => sum + (r.hours_worked || 0), 0);
+  };
+
+  // Nome cantiere selezionato
+  const getSelectedWorksiteName = () => {
+    const ws = worksites.find(w => w.id === worksiteFilter);
+    return ws?.name || '';
+  };
+
+  // Nome lavoratore selezionato
+  const getSelectedWorkerName = () => {
+    const worker = workers.find(w => w.id === workerFilter);
+    return worker?.full_name || '';
   };
 
   if (loading) {
@@ -153,7 +206,7 @@ export default function AllDailyReports() {
         <div className="flex items-center space-x-2 mb-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-900">Filtri</h3>
-          {(searchTerm || dateFilter || worksiteFilter || workerFilter) && (
+          {(searchTerm || dateFrom || dateTo || worksiteFilter || workerFilter) && (
             <button
               onClick={clearFilters}
               className="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -163,7 +216,7 @@ export default function AllDailyReports() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -172,15 +225,6 @@ export default function AllDailyReports() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -217,8 +261,73 @@ export default function AllDailyReports() {
           </div>
         </div>
 
+        {/* Filtro Date DA - A + Seleziona Mese Corrente */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Da</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">A</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">&nbsp;</label>
+            <button
+              onClick={setCurrentMonth}
+              className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Seleziona Mese Corrente
+            </button>
+          </div>
+        </div>
+
         <div className="text-sm text-gray-600">
           Visualizzando {filteredReports.length} di {reports.length} rapportini
+        </div>
+
+        {/* Box Totale Ore */}
+        <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          {worksiteFilter || workerFilter ? (
+            <div className="space-y-3">
+              {worksiteFilter && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">
+                    Totale ore cantiere <span className="text-blue-600 font-medium">{getSelectedWorksiteName()}</span>:
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {getTotalHoursForWorksite().toFixed(1)} ore
+                  </span>
+                </div>
+              )}
+              {workerFilter && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">
+                    Totale ore lavoratore <span className="text-blue-600 font-medium">{getSelectedWorkerName()}</span>:
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {getTotalHoursForWorker().toFixed(1)} ore
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center">
+              Per vedere il totale ore, selezionare un cantiere o un lavoratore
+            </p>
+          )}
         </div>
       </div>
 
@@ -228,7 +337,7 @@ export default function AllDailyReports() {
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Nessun rapportino trovato</h3>
             <p className="text-gray-600">
-              {searchTerm || dateFilter || worksiteFilter || workerFilter
+              {searchTerm || dateFrom || dateTo || worksiteFilter || workerFilter
                 ? 'Prova a modificare i filtri di ricerca'
                 : 'Non ci sono ancora rapportini compilati'}
             </p>
