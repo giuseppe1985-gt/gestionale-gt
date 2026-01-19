@@ -49,9 +49,11 @@ export default function WorkerDashboard() {
         .order('assigned_date', { ascending: true })
         .limit(5);
 
+      // Mostra solo annunci globali (target_worker_id null) o diretti a questo utente
       const { data: announcements } = await supabase
         .from('announcements')
         .select('*')
+        .or(`target_worker_id.is.null,target_worker_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
         .limit(5);
 
