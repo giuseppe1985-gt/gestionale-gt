@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { MessageSquare, Plus, Trash2, AlertCircle, Info, Bell, FileText, Download, Upload } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, AlertCircle, Info, Bell, FileText, Download, Upload, User } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyNewAnnouncement } from '../../lib/notifications';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'] & {
   worksite?: { name: string } | null;
   target_worker?: { full_name: string } | null;
+  creator?: { full_name: string; avatar_url: string | null } | null;
 };
 type Worksite = Database['public']['Tables']['worksites']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -59,15 +60,20 @@ export default function AnnouncementsManagement() {
         .eq('status', 'active')
         .order('full_name');
 
-      const announcementsWithDetails = (announcementsData || []).map(announcement => ({
-        ...announcement,
-        worksite: announcement.target_worksite_id
-          ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
-          : null,
-        target_worker: announcement.target_worker_id
-          ? workersData?.find(w => w.id === announcement.target_worker_id)
-          : null,
-      }));
+      // Costruisci gli annunci con i dettagli incluso il creator
+      const announcementsWithDetails = (announcementsData || []).map(announcement => {
+        const creator = workersData?.find(w => w.id === announcement.created_by);
+        return {
+          ...announcement,
+          worksite: announcement.target_worksite_id
+            ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
+            : null,
+          target_worker: announcement.target_worker_id
+            ? workersData?.find(w => w.id === announcement.target_worker_id)
+            : null,
+          creator: creator ? { full_name: creator.full_name, avatar_url: creator.avatar_url } : null,
+        };
+      });
 
       setAnnouncements(announcementsWithDetails);
       setWorksites(worksitesData || []);
@@ -313,6 +319,23 @@ export default function AnnouncementsManagement() {
                     <p className="text-sm opacity-75">
                       {formatDate(announcement.created_at)}
                     </p>
+                    {/* Mostra l'autore dell'annuncio */}
+                    {announcement.creator && (
+                      <div className="flex items-center gap-2 mt-2">
+                        {announcement.creator.avatar_url ? (
+                          <img 
+                            src={announcement.creator.avatar_url} 
+                            alt={announcement.creator.full_name}
+                            className="w-5 h-5 rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-4 h-4 opacity-75" />
+                        )}
+                        <span className="text-sm opacity-75">
+                          Pubblicato da <strong>{announcement.creator.full_name}</strong>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button
