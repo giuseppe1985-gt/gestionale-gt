@@ -388,9 +388,17 @@ export default function TimeEntriesView() {
             <div key={workerId} className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {worker.full_name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                  {worker.avatar_url ? (
+                    <img
+                      src={worker.avatar_url}
+                      alt={worker.full_name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      {worker.full_name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold text-gray-900">{worker.full_name}</h3>
                     <p className="text-sm text-gray-600">{worker.position}</p>
