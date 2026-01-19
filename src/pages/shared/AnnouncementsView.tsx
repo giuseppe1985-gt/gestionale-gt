@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { MessageSquare, AlertCircle, Info, Bell, FileText, Download } from 'lucide-react';
+import { MessageSquare, AlertCircle, Info, Bell, FileText, Download, User } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'] & {
   worksite?: { name: string } | null;
+  creator?: { full_name: string; avatar_url: string | null } | null;
 };
 
 export default function AnnouncementsView() {
@@ -25,7 +26,12 @@ export default function AnnouncementsView() {
         .select('*, worksite:worksites!announcements_worksite_id_fkey(*)')
         .order('created_at', { ascending: false });
 
-      // Filtra gli annunci in base al destinatario
+      // Carica tutti i profili per ottenere i creator
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url');
+
+      // Filtra gli annunci in base al destinatario e aggiungi creator
       const filteredAnnouncements = (data || []).filter(announcement => {
         // Se è per tutti, mostra
         if (announcement.target_audience === 'all') {
@@ -40,6 +46,12 @@ export default function AnnouncementsView() {
           return true;
         }
         return true;
+      }).map(announcement => {
+        const creator = profilesData?.find(p => p.id === announcement.created_by);
+        return {
+          ...announcement,
+          creator: creator ? { full_name: creator.full_name, avatar_url: creator.avatar_url } : null,
+        };
       });
 
       setAnnouncements(filteredAnnouncements);
@@ -164,6 +176,23 @@ export default function AnnouncementsView() {
                   <p className="text-sm opacity-75">
                     {formatDate(announcement.created_at)}
                   </p>
+                  {/* Mostra l'autore dell'annuncio */}
+                  {announcement.creator && (
+                    <div className="flex items-center gap-2 mt-2">
+                      {announcement.creator.avatar_url ? (
+                        <img 
+                          src={announcement.creator.avatar_url} 
+                          alt={announcement.creator.full_name}
+                          className="w-5 h-5 rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-4 h-4 opacity-75" />
+                      )}
+                      <span className="text-sm opacity-75">
+                        Pubblicato da <strong>{announcement.creator.full_name}</strong>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
