@@ -333,9 +333,17 @@ export default function LeaveRequestsApproval() {
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {request.worker.full_name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                  {request.worker.avatar_url ? (
+                    <img
+                      src={request.worker.avatar_url}
+                      alt={request.worker.full_name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      {request.worker.full_name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold text-gray-900">{request.worker.full_name}</h3>
                     <p className="text-sm text-gray-600">{request.worker.position}</p>
