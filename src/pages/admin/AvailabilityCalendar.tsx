@@ -56,6 +56,9 @@ export default function AvailabilityCalendar() {
         .gte('end_date', startOfMonth.toISOString().split('T')[0])
         .lte('start_date', endOfMonth.toISOString().split('T')[0]);
 
+      // Sincronizza gli stati dei worker basandosi sulle leave_requests attive
+      await syncWorkerStatuses(workersData || [], requestsData || []);
+
       setWorkers(workersData || []);
       setLeaveRequests(requestsData || []);
       calculateAvailability(workersData || [], requestsData || [], selectedDate);
@@ -63,6 +66,44 @@ export default function AvailabilityCalendar() {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Sincronizza automaticamente gli stati dei worker
+  const syncWorkerStatuses = async (workersData: Profile[], requestsData: LeaveRequest[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const worker of workersData) {
+      // Trova leave_requests attive OGGI per questo worker (SOLO vacation e sick_leave)
+      const activeLeaveToday = requestsData.find(request => {
+        if (request.worker_id !== worker.id) return false;
+        // Solo ferie e malattia settano lo stato "Fuori Sede"
+        if (request.request_type !== 'vacation' && request.request_type !== 'sick_leave') return false;
+
+        const startDate = new Date(request.start_date!);
+        const endDate = new Date(request.end_date!);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        return today >= startDate && today <= endDate;
+      });
+
+      // Se ha ferie/malattia attive oggi ma status NON è off_site → aggiorna a off_site
+      if (activeLeaveToday && worker.status !== 'off_site') {
+        await supabase
+          .from('profiles')
+          .update({ status: 'off_site' })
+          .eq('id', worker.id);
+      }
+      
+      // Se NON ha ferie/malattia attive oggi ma status È off_site → resetta a active
+      if (!activeLeaveToday && worker.status === 'off_site') {
+        await supabase
+          .from('profiles')
+          .update({ status: 'active' })
+          .eq('id', worker.id);
+      }
     }
   };
 
@@ -84,21 +125,30 @@ export default function AvailabilityCalendar() {
 
       if (activeLeave) {
         let leaveTypeLabel = '';
+        let isFullDayLeave = false; // Solo vacation e sick_leave rendono "non disponibile"
+        
         switch (activeLeave.request_type) {
           case 'vacation':
             leaveTypeLabel = 'Ferie';
-            break;
-          case 'rol':
-            leaveTypeLabel = 'ROL';
+            isFullDayLeave = true;
             break;
           case 'sick_leave':
             leaveTypeLabel = 'Malattia';
+            isFullDayLeave = true;
+            break;
+          case 'rol':
+            leaveTypeLabel = 'ROL';
+            isFullDayLeave = false; // ROL = poche ore, worker comunque disponibile
+            break;
+          case 'appointment':
+            leaveTypeLabel = 'Appuntamento';
+            isFullDayLeave = false; // Appuntamenti = fuori orario lavorativo
             break;
         }
 
         return {
           worker,
-          isAvailable: false,
+          isAvailable: !isFullDayLeave, // Disponibile se è ROL o appointment
           reason: `${leaveTypeLabel}${activeLeave.reason ? ` - ${activeLeave.reason}` : ''}`,
           leaveType: activeLeave.request_type,
           endDate: activeLeave.end_date || undefined,
@@ -167,7 +217,7 @@ export default function AvailabilityCalendar() {
     const badges = {
       active: 'bg-green-100 text-green-800',
       on_break: 'bg-orange-100 text-orange-800',
-      off_site: 'bg-gray-100 text-gray-800',
+      off_site: 'bg-purple-100 text-purple-800',
     };
     const labels = {
       active: 'Attivo',
@@ -175,8 +225,8 @@ export default function AvailabilityCalendar() {
       off_site: 'Fuori Sede',
     };
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badges[status as keyof typeof badges]}`}>
-        {labels[status as keyof typeof labels]}
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badges[status as keyof typeof badges] || 'bg-gray-100 text-gray-800'}`}>
+        {labels[status as keyof typeof labels] || status}
       </span>
     );
   };
@@ -291,9 +341,17 @@ export default function AvailabilityCalendar() {
               >
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                      {worker.full_name.split(' ').map(n => n[0]).join('')}
-                    </div>
+                    {worker.avatar_url ? (
+                      <img 
+                        src={worker.avatar_url} 
+                        alt={worker.full_name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                        {worker.full_name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                    )}
                     <p className="font-medium text-gray-900 text-sm">{worker.full_name}</p>
                   </div>
                   {isAvailable ? (
@@ -305,7 +363,7 @@ export default function AvailabilityCalendar() {
                 <div className="mt-2">
                   {getStatusBadge(worker.status)}
                 </div>
-                {!isAvailable && (
+                {reason && (
                   <div className="mt-2 text-xs text-gray-700">
                     <p className="font-medium">{reason}</p>
                     {endDate && (
@@ -343,8 +401,9 @@ export default function AvailabilityCalendar() {
             <p className="font-semibold mb-1">Informazioni:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>Il calendario mostra solo le richieste approvate</li>
-              <li>Il personale in ferie, ROL o malattia è contrassegnato in rosso</li>
-              <li>Lo stato attuale mostra la disponibilità di oggi</li>
+              <li><strong>Ferie e Malattia</strong> rendono il lavoratore <strong>non disponibile</strong> e aggiornano lo stato a "Fuori Sede"</li>
+              <li><strong>ROL e Appuntamenti</strong> non rendono il lavoratore non disponibile (permessi parziali)</li>
+              <li>Lo stato viene sincronizzato automaticamente ogni giorno</li>
             </ul>
           </div>
         </div>
