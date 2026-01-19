@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Plus, Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Upload, CalendarClock } from 'lucide-react';
+import { Plus, Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Upload, CalendarClock, MessageSquare, RefreshCw } from 'lucide-react';
 import { Database } from '../../lib/database.types';
-import { notifyLeaveRequest } from '../../lib/notifications';
+import { notifyLeaveRequest, notifyCounterProposal } from '../../lib/notifications';
 
 type LeaveBalance = Database['public']['Tables']['leave_balances']['Row'];
 type LeaveRequest = Database['public']['Tables']['leave_requests']['Row'] & {
   reviewer?: Database['public']['Tables']['profiles']['Row'];
+  counter_proposer?: Database['public']['Tables']['profiles']['Row'];
 };
 
 export default function LeaveRequests() {
@@ -15,6 +16,8 @@ export default function LeaveRequests() {
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showCounterModal, setShowCounterModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [certificate, setCertificate] = useState<File | null>(null);
@@ -26,6 +29,12 @@ export default function LeaveRequests() {
     hours_requested: 8,
     reason: '',
     appointment_time: '',
+  });
+
+  const [counterFormData, setCounterFormData] = useState({
+    counter_date: '',
+    counter_time: '',
+    counter_reason: '',
   });
 
   useEffect(() => {
@@ -42,7 +51,7 @@ export default function LeaveRequests() {
 
       const { data: requestsData } = await supabase
         .from('leave_requests')
-        .select('*, reviewer:profiles!leave_requests_reviewed_by_fkey(*)')
+        .select('*, reviewer:profiles!leave_requests_reviewed_by_fkey(*), counter_proposer:profiles!leave_requests_counter_by_fkey(*)')
         .eq('worker_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -88,7 +97,7 @@ export default function LeaveRequests() {
           alert('Seleziona data e ora dell\'appuntamento');
           return;
         }
-        hoursToRequest = 0; // Gli appuntamenti non scalano ore
+        hoursToRequest = 0;
       }
 
       if (formData.request_type === 'vacation' && balance && hoursToRequest > balance.vacation_hours) {
@@ -128,11 +137,12 @@ export default function LeaveRequests() {
         certificateUrl = publicUrl;
       }
 
-      const requestData: Database['public']['Tables']['leave_requests']['Insert'] = {
+      const requestData: any = {
         worker_id: user!.id,
         request_type: formData.request_type,
         hours_requested: hoursToRequest,
         organization_id: profile?.organization_id,
+        pending_response_from: 'reviewer',
       };
 
       if (formData.request_type === 'vacation' || formData.request_type === 'sick_leave') {
@@ -185,6 +195,114 @@ export default function LeaveRequests() {
     }
   };
 
+  // Accetta la controproposta ricevuta
+  const handleAcceptCounterProposal = async (request: LeaveRequest) => {
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: 'approved',
+          start_date: request.counter_date,
+          appointment_time: request.counter_time,
+          reason: request.counter_reason || request.reason,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      // Notifica chi ha fatto la controproposta
+      if (request.counter_by) {
+        await notifyCounterProposal(request.counter_by, 'accepted', request.id);
+      }
+
+      loadData();
+    } catch (error) {
+      console.error('Error accepting counter proposal:', error);
+      alert('Errore durante l\'accettazione della controproposta');
+    }
+  };
+
+  // Rifiuta la controproposta (rifiuto definitivo)
+  const handleRejectCounterProposal = async (request: LeaveRequest) => {
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      // Notifica chi ha fatto la controproposta
+      if (request.counter_by) {
+        await notifyCounterProposal(request.counter_by, 'rejected', request.id);
+      }
+
+      loadData();
+    } catch (error) {
+      console.error('Error rejecting counter proposal:', error);
+      alert('Errore durante il rifiuto della controproposta');
+    }
+  };
+
+  // Apri modal per fare controproposta (come worker)
+  const openCounterProposalModal = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setCounterFormData({
+      counter_date: '',
+      counter_time: '',
+      counter_reason: '',
+    });
+    setShowCounterModal(true);
+  };
+
+  // Invia controproposta come worker
+  const handleSubmitCounterProposal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRequest) return;
+
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: 'counter_proposal',
+          counter_date: counterFormData.counter_date,
+          counter_time: counterFormData.counter_time,
+          counter_reason: counterFormData.counter_reason,
+          counter_by: user?.id,
+          pending_response_from: 'reviewer',
+        })
+        .eq('id', selectedRequest.id);
+
+      if (error) throw error;
+
+      // Notifica gli admin della nuova controproposta
+      if (profile?.organization_id) {
+        const { data: admins } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('organization_id', profile.organization_id)
+          .in('role', ['admin', 'administrator']);
+
+        if (admins && admins.length > 0) {
+          for (const admin of admins) {
+            await notifyCounterProposal(admin.id, 'new', selectedRequest.id);
+          }
+        }
+      }
+
+      setShowCounterModal(false);
+      setSelectedRequest(null);
+      loadData();
+    } catch (error) {
+      console.error('Error submitting counter proposal:', error);
+      alert('Errore durante l\'invio della controproposta');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       request_type: 'vacation',
@@ -206,7 +324,7 @@ export default function LeaveRequests() {
   };
 
   const formatTime = (time: string) => {
-    return time.substring(0, 5); // Mostra solo HH:MM
+    return time.substring(0, 5);
   };
 
   const getRequestTypeLabel = (type: string) => {
@@ -219,13 +337,20 @@ export default function LeaveRequests() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, pendingResponseFrom?: string | null) => {
     switch (status) {
       case 'pending':
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
             <Clock className="w-3 h-3 mr-1" />
             In Attesa
+          </span>
+        );
+      case 'counter_proposal':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+            <MessageSquare className="w-3 h-3 mr-1" />
+            {pendingResponseFrom === 'worker' ? 'Controproposta Ricevuta' : 'Controproposta Inviata'}
           </span>
         );
       case 'approved':
@@ -343,7 +468,7 @@ export default function LeaveRequests() {
                       )}
                     </p>
                   </div>
-                  {getStatusBadge(request.status)}
+                  {getStatusBadge(request.status, request.pending_response_from)}
                 </div>
 
                 {request.reason && (
@@ -352,11 +477,71 @@ export default function LeaveRequests() {
                   </div>
                 )}
 
+                {/* Mostra controproposta ricevuta (worker deve rispondere) */}
+                {request.status === 'counter_proposal' && request.pending_response_from === 'worker' && request.counter_date && (
+                  <div className="mb-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <RefreshCw className="w-4 h-4 text-orange-600" />
+                      <p className="text-sm font-semibold text-orange-800">Controproposta Ricevuta</p>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <p><strong>Data:</strong> {formatDate(request.counter_date)}</p>
+                      {request.counter_time && <p><strong>Ora:</strong> {formatTime(request.counter_time)}</p>}
+                      {request.counter_reason && <p><strong>Motivazione:</strong> {request.counter_reason}</p>}
+                      {request.counter_proposer && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Proposto da <strong>{request.counter_proposer.full_name}</strong>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bottoni azione per controproposta ricevuta */}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => handleAcceptCounterProposal(request)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Accetta
+                      </button>
+                      <button
+                        onClick={() => openCounterProposalModal(request)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Controproposta
+                      </button>
+                      <button
+                        onClick={() => handleRejectCounterProposal(request)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Rifiuta
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mostra controproposta inviata (in attesa di risposta) */}
+                {request.status === 'counter_proposal' && request.pending_response_from === 'reviewer' && request.counter_date && (
+                  <div className="mb-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <p className="text-sm font-semibold text-blue-800">Tua Controproposta (In Attesa)</p>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <p><strong>Data:</strong> {formatDate(request.counter_date)}</p>
+                      {request.counter_time && <p><strong>Ora:</strong> {formatTime(request.counter_time)}</p>}
+                      {request.counter_reason && <p><strong>Motivazione:</strong> {request.counter_reason}</p>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center text-xs text-gray-500">
                   <span>Richiesta il {formatDate(request.created_at)}</span>
                   {request.reviewed_at && request.reviewer && (
                     <span>
-                      {request.status === 'approved' ? 'Approvata' : 'Rifiutata'} da {request.reviewer.full_name}
+                      {request.status === 'approved' ? '✅ Approvata' : '❌ Rifiutata'} da <strong>{request.reviewer.full_name}</strong>
                     </span>
                   )}
                 </div>
@@ -366,9 +551,10 @@ export default function LeaveRequests() {
         </div>
       </div>
 
+      {/* Modal Nuova Richiesta */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Richiesta</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -592,6 +778,76 @@ export default function LeaveRequests() {
                   className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? 'Caricamento...' : 'Invia Richiesta'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Controproposta (Worker) */}
+      {showCounterModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Nuova Controproposta</h2>
+            <p className="text-gray-600 mb-6">Proponi una nuova data e ora per l'appuntamento</p>
+
+            <form onSubmit={handleSubmitCounterProposal} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Data Proposta *
+                </label>
+                <input
+                  type="date"
+                  value={counterFormData.counter_date}
+                  onChange={(e) => setCounterFormData({ ...counterFormData, counter_date: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ora Proposta *
+                </label>
+                <input
+                  type="time"
+                  value={counterFormData.counter_time}
+                  onChange={(e) => setCounterFormData({ ...counterFormData, counter_time: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Motivazione
+                </label>
+                <textarea
+                  value={counterFormData.counter_reason}
+                  onChange={(e) => setCounterFormData({ ...counterFormData, counter_reason: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Spiega il motivo della tua controproposta..."
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCounterModal(false);
+                    setSelectedRequest(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-all"
+                >
+                  Invia Controproposta
                 </button>
               </div>
             </form>
