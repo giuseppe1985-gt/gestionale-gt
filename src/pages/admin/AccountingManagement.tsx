@@ -54,6 +54,18 @@ interface InvoiceAdvance {
   created_at: string;
 }
 
+interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  supplier_name: string;
+  amount: number;
+  invoice_date: string;
+  vat_rate: number;
+  vat_amount: number;
+  description: string;
+  created_at: string;
+}
+
 interface MonthlySummary {
   month: string;
   card_id: string;
@@ -116,13 +128,14 @@ type TimeFilter = 'all' | 'past' | 'today' | 'week' | 'month' | 'future' | 'cust
 
 export default function AccountingManagement() {
   const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'invoices' | 'schedule' | 'riba' | 'advances' | 'cards' | 'calculations'>('invoices');
+  const [activeTab, setActiveTab] = useState<'invoices' | 'schedule' | 'riba' | 'advances' | 'purchases' | 'cards' | 'calculations'>('invoices');
   const [loading, setLoading] = useState(true);
 
   const [issuedInvoices, setIssuedInvoices] = useState<IssuedInvoice[]>([]);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentScheduleItem[]>([]);
   const [supplierRiba, setSupplierRiba] = useState<SupplierRiba[]>([]);
   const [invoiceAdvances, setInvoiceAdvances] = useState<InvoiceAdvance[]>([]);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
   const [monthlySummary, setMonthlySummary] = useState<MonthlySummary[]>([]);
   const [invoiceCalculations, setInvoiceCalculations] = useState<InvoiceCalculation[]>([]);
 const [worksiteInvoices, setWorksiteInvoices] = useState<WorksiteInvoice[]>([]);
@@ -138,6 +151,7 @@ const [searchText, setSearchText] = useState('');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showRibaModal, setShowRibaModal] = useState(false);
   const [showAdvanceModal, setShowAdvanceModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showCalculationModal, setShowCalculationModal] = useState(false);
 
   const [invoiceForm, setInvoiceForm] = useState({
@@ -178,6 +192,15 @@ const [searchText, setSearchText] = useState('');
     notes: ''
   });
 
+  const [purchaseForm, setPurchaseForm] = useState({
+    invoice_number: '',
+    supplier_name: '',
+    amount: '',
+    invoice_date: new Date().toISOString().split('T')[0],
+    vat_rate: '22',
+    description: ''
+  });
+
   const [calculationForm, setCalculationForm] = useState({
   type: 'income' as 'income' | 'expense' | 'estimate',
   invoice_number: '',
@@ -198,11 +221,12 @@ const [searchText, setSearchText] = useState('');
     try {
       setLoading(true);
 
-      const [invoicesRes, scheduleRes, ribaRes, advancesRes, summaryRes, calculationsRes, wsInvoicesRes, wsExpensesRes, worksitesRes] = await Promise.all([
+      const [invoicesRes, scheduleRes, ribaRes, advancesRes, purchasesRes, summaryRes, calculationsRes, wsInvoicesRes, wsExpensesRes, worksitesRes] = await Promise.all([
   supabase.from('issued_invoices').select('*').order('due_date', { ascending: false }),
   supabase.from('payment_schedule').select('*').order('due_date', { ascending: false }),
   supabase.from('supplier_riba').select('*').order('due_date', { ascending: false }),
   supabase.from('invoice_advances').select('*').order('advance_date', { ascending: false }),
+  supabase.from('purchase_invoices').select('*').order('invoice_date', { ascending: false }),
   supabase.from('monthly_cards_summary').select('*'),
   supabase.from('invoice_calculations').select('*, worksite:worksites(name)').order('invoice_date', { ascending: false }),
   supabase.from('worksite_invoices').select('*, worksite:worksites(name)').order('date', { ascending: false }),
@@ -214,6 +238,7 @@ if (invoicesRes.error) throw invoicesRes.error;
 if (scheduleRes.error) throw scheduleRes.error;
 if (ribaRes.error) throw ribaRes.error;
 if (advancesRes.error) throw advancesRes.error;
+if (purchasesRes.error) console.log('purchase_invoices table may not exist yet');
 if (summaryRes.error) throw summaryRes.error;
 if (calculationsRes.error) throw calculationsRes.error;
 if (wsInvoicesRes.error) throw wsInvoicesRes.error;
@@ -224,6 +249,7 @@ setIssuedInvoices(invoicesRes.data || []);
 setPaymentSchedule(scheduleRes.data || []);
 setSupplierRiba(ribaRes.data || []);
 setInvoiceAdvances(advancesRes.data || []);
+setPurchaseInvoices(purchasesRes.data || []);
 setMonthlySummary(summaryRes.data || []);
 setInvoiceCalculations(calculationsRes.data || []);
 setWorksiteInvoices(wsInvoicesRes.data || []);
@@ -485,6 +511,63 @@ const { error } = await supabase.from('issued_invoices').insert({
     } catch (error) {
       console.error('Error deleting advance:', error);
       alert('Errore nell\'eliminazione dell\'anticipo');
+    }
+  };
+
+  const handleAddPurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const amount = parseFloat(purchaseForm.amount);
+      const vatRate = parseInt(purchaseForm.vat_rate);
+      const vatAmount = vatRate === 0 ? 0 : amount - (amount / (1 + vatRate / 100));
+
+      const { error } = await supabase.from('purchase_invoices').insert({
+        invoice_number: purchaseForm.invoice_number,
+        supplier_name: purchaseForm.supplier_name,
+        amount: amount,
+        invoice_date: purchaseForm.invoice_date,
+        vat_rate: vatRate,
+        vat_amount: vatAmount,
+        description: purchaseForm.description,
+        organization_id: profile?.organization_id,
+        created_by: profile?.id
+      });
+
+      if (error) throw error;
+
+      alert('Fattura acquisto aggiunta con successo');
+      setShowPurchaseModal(false);
+      setPurchaseForm({
+        invoice_number: '',
+        supplier_name: '',
+        amount: '',
+        invoice_date: new Date().toISOString().split('T')[0],
+        vat_rate: '22',
+        description: ''
+      });
+      await loadData();
+    } catch (error) {
+      console.error('Error adding purchase invoice:', error);
+      alert('Errore nell\'aggiunta della fattura acquisto');
+    }
+  };
+
+  const handleDeletePurchase = async (id: string) => {
+    if (!confirm('Eliminare questa fattura acquisto?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('purchase_invoices')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting purchase invoice:', error);
+      alert('Errore nell\'eliminazione della fattura acquisto');
     }
   };
 
@@ -793,6 +876,27 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    // Formato YYYY-MM-DD senza problemi di fuso orario
+                    const formatDate = (date: Date) => {
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      return `${year}-${month}-${day}`;
+                    };
+                    setCustomStartDate(formatDate(firstDay));
+                    setCustomEndDate(formatDate(lastDay));
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                >
+                  Seleziona Mese Corrente
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -842,6 +946,17 @@ const { error } = await supabase.from('invoice_calculations').insert({
             >
               <FileText className="w-4 h-4 inline mr-2" />
               Fatture Emesse
+            </button>
+            <button
+              onClick={() => setActiveTab('purchases')}
+              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'purchases'
+                  ? 'border-red-600 text-red-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <FileText className="w-4 h-4 inline mr-2" />
+              Fatture Acquisto
             </button>
             <button
               onClick={() => setActiveTab('schedule')}
@@ -981,6 +1096,26 @@ const { error } = await supabase.from('invoice_calculations').insert({
                     ? 'Nessuna fattura nel periodo selezionato'
                     : 'Nessuna fattura emessa'}
                 </p>
+              )}
+
+              {/* Totali Fatture Emesse */}
+              {filterByDate(issuedInvoices).length > 0 && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-blue-800">Totale Fatture Emesse</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {formatCurrency(filterByDate(issuedInvoices).reduce((sum, inv) => sum + parseFloat(inv.amount.toString()), 0))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-800">Totale IVA Vendite</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatCurrency(filterByDate(issuedInvoices).reduce((sum, inv) => sum + (inv.vat_amount || 0), 0))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1217,6 +1352,84 @@ const { error } = await supabase.from('invoice_calculations').insert({
                     ? 'Nessun anticipo nel periodo selezionato'
                     : 'Nessun anticipo registrato'}
                 </p>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'purchases' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Fatture Acquisto</h2>
+                <button
+                  onClick={() => setShowPurchaseModal(true)}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nuova Fattura Acquisto
+                </button>
+              </div>
+
+              {purchaseInvoices.length > 0 ? (
+                <div className="space-y-3">
+                  {purchaseInvoices.map((purchase) => (
+                    <div
+                      key={purchase.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="font-bold text-gray-900">{purchase.invoice_number}</span>
+                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                              IVA {purchase.vat_rate}%
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">Fornitore: {purchase.supplier_name}</p>
+                          {purchase.description && (
+                            <p className="text-sm text-gray-500 mt-1">{purchase.description}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-2">
+                            Data: {formatDate(purchase.invoice_date)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-red-600">{formatCurrency(parseFloat(purchase.amount.toString()))}</p>
+                          <p className="text-sm text-red-500">IVA: {formatCurrency(purchase.vat_amount || 0)}</p>
+                          <button
+                            onClick={() => handleDeletePurchase(purchase.id)}
+                            className="mt-2 p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-8">
+                  Nessuna fattura acquisto registrata
+                </p>
+              )}
+
+              {/* Totali */}
+              {purchaseInvoices.length > 0 && (
+                <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-red-800">Totale Fatture Acquisto</p>
+                      <p className="text-2xl font-bold text-red-700">
+                        {formatCurrency(purchaseInvoices.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-red-800">Totale IVA Detraibile</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {formatCurrency(purchaseInvoices.reduce((sum, p) => sum + (p.vat_amount || 0), 0))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1462,6 +1675,29 @@ const { error } = await supabase.from('invoice_calculations').insert({
               </button>
             </div>
           ))}
+          {/* Fatture Acquisto */}
+          {purchaseInvoices
+            .filter(p => !searchText || p.supplier_name?.toLowerCase().includes(searchText.toLowerCase()) || p.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+            .map((purchase) => (
+            <div key={`purchase-${purchase.id}`} className="flex items-center justify-between p-3 bg-red-100 rounded-lg border border-red-300">
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{purchase.invoice_number}</p>
+                <p className="text-xs text-gray-600">{purchase.supplier_name}</p>
+                <p className="text-xs text-gray-500">{formatDate(purchase.invoice_date)}</p>
+                <span className="text-xs bg-red-200 text-red-800 px-1 rounded">IVA {purchase.vat_rate}%</span>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-red-600">{formatCurrency(parseFloat(purchase.amount.toString()))}</p>
+                <p className="text-xs text-red-700">IVA: {formatCurrency(purchase.vat_amount || 0)}</p>
+              </div>
+              <button
+                onClick={() => handleDeletePurchase(purchase.id)}
+                className="p-1 text-red-600 hover:bg-red-50 rounded ml-2"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
         </div>
         <div className="border-t border-red-300 pt-4 space-y-2">
           <div className="flex justify-between items-center">
@@ -1472,7 +1708,10 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   .filter(c => c.type === 'expense')
                   .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
                   .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
-                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0)
+                  .reduce((sum, c) => sum + parseFloat(c.amount.toString()), 0) +
+                purchaseInvoices
+                  .filter(p => !searchText || p.supplier_name?.toLowerCase().includes(searchText.toLowerCase()) || p.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0)
               )}
             </p>
           </div>
@@ -1484,7 +1723,10 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   .filter(c => c.type === 'expense')
                   .filter(c => !selectedWorksiteFilter || c.worksite_id === selectedWorksiteFilter)
                   .filter(c => !searchText || c.client_name?.toLowerCase().includes(searchText.toLowerCase()) || c.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || c.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()))
-                  .reduce((sum, c) => sum + (c.vat_amount || 0), 0)
+                  .reduce((sum, c) => sum + (c.vat_amount || 0), 0) +
+                purchaseInvoices
+                  .filter(p => !searchText || p.supplier_name?.toLowerCase().includes(searchText.toLowerCase()) || p.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                  .reduce((sum, p) => sum + (p.vat_amount || 0), 0)
               )}
             </p>
           </div>
@@ -1623,7 +1865,10 @@ const { error } = await supabase.from('invoice_calculations').insert({
               worksiteExpenseInvoices
                 .filter(inv => !selectedWorksiteFilter || inv.worksite_id === selectedWorksiteFilter)
                 .filter(inv => !searchText || inv.worksite?.name?.toLowerCase().includes(searchText.toLowerCase()) || inv.invoice_number?.toLowerCase().includes(searchText.toLowerCase()) || inv.supplier_name?.toLowerCase().includes(searchText.toLowerCase()))
-                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0)
+                .reduce((sum, i) => sum + parseFloat(i.amount.toString()), 0) +
+              purchaseInvoices
+                .filter(p => !searchText || p.supplier_name?.toLowerCase().includes(searchText.toLowerCase()) || p.invoice_number?.toLowerCase().includes(searchText.toLowerCase()))
+                .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0)
             )}
           </p>
         </div>
@@ -2185,6 +2430,122 @@ const { error } = await supabase.from('invoice_calculations').insert({
                 <button
                   type="submit"
                   className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                >
+                  Aggiungi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPurchaseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Fattura Acquisto</h2>
+            <form onSubmit={handleAddPurchase} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Numero Fattura *
+                  </label>
+                  <input
+                    type="text"
+                    value={purchaseForm.invoice_number}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, invoice_number: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    placeholder="Es: FT-001"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fornitore *
+                  </label>
+                  <input
+                    type="text"
+                    value={purchaseForm.supplier_name}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, supplier_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    placeholder="Nome fornitore"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Importo Totale (€) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={purchaseForm.amount}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, amount: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    % IVA *
+                  </label>
+                  <select
+                    value={purchaseForm.vat_rate}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, vat_rate: e.target.value })}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
+                  >
+                    <option value="0">0%</option>
+                    <option value="4">4%</option>
+                    <option value="10">10%</option>
+                    <option value="22">22%</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Data Fattura *
+                  </label>
+                  <input
+                    type="date"
+                    value={purchaseForm.invoice_date}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, invoice_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Descrizione
+                  </label>
+                  <textarea
+                    value={purchaseForm.description}
+                    onChange={(e) => setPurchaseForm({ ...purchaseForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    rows={3}
+                    placeholder="Descrizione opzionale..."
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPurchaseModal(false);
+                    setPurchaseForm({
+                      invoice_number: '',
+                      supplier_name: '',
+                      amount: '',
+                      invoice_date: new Date().toISOString().split('T')[0],
+                      vat_rate: '22',
+                      description: ''
+                    });
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                 >
                   Aggiungi
                 </button>
