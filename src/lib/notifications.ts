@@ -64,10 +64,8 @@ export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
 
   if (params.targetAudience === 'worker' && params.targetWorkerId) {
     console.log('Sending notification to single worker:', params.targetWorkerId);
-    // Notifica solo al lavoratore specifico
     userIds = [params.targetWorkerId];
   } else if (params.targetAudience === 'specific' && params.targetWorksiteId) {
-    // Notifica a tutti i lavoratori assegnati al cantiere (opzionale, per ora tutti)
     const { data: users, error } = await supabase
       .from('profiles')
       .select('id')
@@ -79,7 +77,6 @@ export async function notifyNewAnnouncement(params: NotifyAnnouncementParams) {
     }
     userIds = users.map(u => u.id);
   } else {
-    // Notifica a tutti gli utenti dell'organizzazione
     const { data: users, error } = await supabase
       .from('profiles')
       .select('id')
@@ -141,4 +138,42 @@ export async function notifyLeaveResponse(workerId: string, status: 'approved' |
     entityType: 'leave_request',
     entityId: leaveRequestId,
   });
+}
+
+// Funzione per notificare controproposte bidirezionali
+export async function notifyCounterProposal(
+  userId: string,
+  type: 'new' | 'accepted' | 'rejected',
+  requestId: string
+) {
+  try {
+    let title = '';
+    let message = '';
+
+    switch (type) {
+      case 'new':
+        title = 'Nuova Controproposta';
+        message = 'Hai ricevuto una nuova controproposta per il tuo appuntamento. Controlla i dettagli.';
+        break;
+      case 'accepted':
+        title = 'Controproposta Accettata';
+        message = 'La tua controproposta è stata accettata!';
+        break;
+      case 'rejected':
+        title = 'Richiesta Rifiutata';
+        message = 'La richiesta di appuntamento è stata rifiutata definitivamente.';
+        break;
+    }
+
+    await sendImmediateNotification({
+      type: 'leave_response',
+      userIds: [userId],
+      title,
+      body: message,
+      entityType: 'leave_request',
+      entityId: requestId,
+    });
+  } catch (error) {
+    console.error('Error in notifyCounterProposal:', error);
+  }
 }
