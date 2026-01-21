@@ -83,11 +83,11 @@ export default function Onboarding({ userId, userEmail, userFullName, onComplete
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tutto Pronto!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Tutto Pronto!</h1>
+          <p className="text-gray-600 mb-4 sm:mb-6">
             La tua azienda è stata creata con successo.
             <br />
             Sarai reindirizzato al pannello di controllo...
@@ -115,11 +115,11 @@ export default function Onboarding({ userId, userEmail, userFullName, onComplete
           <div className="w-20 h-20 bg-gradient-to-br from-blue-900 to-blue-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Building2 className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Configura la Tua Azienda</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Configura la Tua Azienda</h1>
           <p className="text-gray-600 text-sm mt-1">Ultimo passo prima di iniziare</p>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 sm:mb-6">
           <p className="text-sm text-yellow-800">
             <strong>Hai già un account configurato?</strong>
             <br />
@@ -127,7 +127,7 @@ export default function Onboarding({ userId, userEmail, userFullName, onComplete
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
