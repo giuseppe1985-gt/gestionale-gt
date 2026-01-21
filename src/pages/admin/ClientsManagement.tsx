@@ -245,11 +245,11 @@ export default function ClientsManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestione Clienti</h1>
-          <p className="text-gray-600 mt-1">Gestisci clienti nuovi, in corso e completati</p>
+          <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900">Gestione Clienti</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci clienti nuovi, in corso e completati</p>
         </div>
         <button
           onClick={() => {
@@ -257,7 +257,7 @@ export default function ClientsManagement() {
             resetForm();
             setShowModal(true);
           }}
-          className="bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all flex items-center space-x-2 shadow-lg"
+          className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Nuovo Cliente</span>
@@ -265,113 +265,114 @@ export default function ClientsManagement() {
       </div>
 
       <div className="bg-white rounded-xl shadow-md border border-gray-200">
-        <div className="flex border-b border-gray-200">
+        {/* Tab Navigation - Mobile Optimized */}
+        <div className="flex border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('new')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-4 sm:px-6 py-2.5 sm:py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'new'
                 ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <UserPlus className="w-5 h-5" />
-            <span>Clienti Nuovi</span>
-            <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="text-xs sm:text-sm truncate">Nuovi</span>
+            <span className="bg-blue-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">
               {clients.filter((c) => c.status === 'new').length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('in_progress')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-4 sm:px-6 py-2.5 sm:py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'in_progress'
                 ? 'border-b-2 border-yellow-600 text-yellow-600 bg-yellow-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <Clock className="w-5 h-5" />
-            <span>In Corso</span>
-            <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="text-xs sm:text-sm truncate">In Corso</span>
+            <span className="bg-yellow-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">
               {clients.filter((c) => c.status === 'in_progress').length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('completed')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-4 sm:px-6 py-2.5 sm:py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'completed'
                 ? 'border-b-2 border-green-600 text-green-600 bg-green-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <CheckCircle className="w-5 h-5" />
-            <span>Lavori Finiti</span>
-            <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="text-xs sm:text-sm truncate">Finiti</span>
+            <span className="bg-green-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0">
               {clients.filter((c) => c.status === 'completed').length}
             </span>
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {filteredClients.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 text-lg">Nessun cliente {getStatusLabel(activeTab).toLowerCase()}</p>
+            <div className="text-center py-8 sm:py-8 sm:py-12">
+              <Users className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-sm sm:text-lg">Nessun cliente {getStatusLabel(activeTab).toLowerCase()}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
               {filteredClients.map((client) => (
                 <div
                   key={client.id}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                  className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <h3 className="text-xl font-bold text-gray-900">{client.name}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <h3 className="text-base sm:text-xl font-bold text-gray-900 truncate">{client.name}</h3>
+                        <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium flex-shrink-0 ${getStatusColor(client.status)}`}>
                           {getStatusLabel(client.status)}
                         </span>
                       </div>
 
                       {client.notes && (
                         <div className="flex items-start space-x-2 text-gray-600 mb-2">
-                          <Briefcase className="w-4 h-4 mt-1 flex-shrink-0" />
-                          <p className="text-sm">{client.notes}</p>
+                          <Briefcase className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs sm:text-sm line-clamp-2">{client.notes}</p>
                         </div>
                       )}
 
                       {client.survey_date && client.status === 'new' && (
-                        <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                          <Calendar className="w-4 h-4" />
+                        <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                          <Calendar className="w-4 h-4 flex-shrink-0" />
                           <span>Sopralluogo: {new Date(client.survey_date).toLocaleDateString('it-IT')}</span>
                         </div>
                       )}
 
                       {client.status === 'in_progress' && (
-                        <div className="space-y-2 mt-3">
+                        <div className="space-y-1.5 sm:space-y-2 mt-2 sm:mt-3">
                           {client.start_date && (
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <Calendar className="w-4 h-4" />
+                            <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                              <Calendar className="w-4 h-4 flex-shrink-0" />
                               <span>Inizio: {new Date(client.start_date).toLocaleDateString('it-IT')}</span>
                             </div>
                           )}
                           {client.end_date && (
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <Calendar className="w-4 h-4" />
+                            <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                              <Calendar className="w-4 h-4 flex-shrink-0" />
                               <span>Fine: {new Date(client.end_date).toLocaleDateString('it-IT')}</span>
                             </div>
                           )}
                           {client.worksite && (
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <MapPin className="w-4 h-4" />
-                              <span>Cantiere: {client.worksite.name}</span>
+                            <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">Cantiere: {client.worksite.name}</span>
                             </div>
                           )}
                           {client.issues && (
-                            <div className="flex items-start space-x-2 text-amber-700 text-sm bg-amber-50 p-3 rounded-lg mt-3">
+                            <div className="flex items-start space-x-2 text-amber-700 text-xs sm:text-sm bg-amber-50 p-2 sm:p-3 rounded-lg mt-2 sm:mt-3">
                               <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <span className="font-medium block mb-1">Problemi ed Imprevisti:</span>
-                                <p>{client.issues}</p>
+                              <div className="min-w-0">
+                                <span className="font-medium block mb-1">Problemi:</span>
+                                <p className="line-clamp-2">{client.issues}</p>
                               </div>
                             </div>
                           )}
@@ -379,24 +380,24 @@ export default function ClientsManagement() {
                       )}
 
                       {client.status === 'completed' && (
-                        <div className="space-y-2 mt-3">
+                        <div className="space-y-1.5 sm:space-y-2 mt-2 sm:mt-3">
                           {client.worksite && (
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <MapPin className="w-4 h-4" />
-                              <span>Cantiere: {client.worksite.name}</span>
+                            <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">Cantiere: {client.worksite.name}</span>
                             </div>
                           )}
                           {client.end_date && (
-                            <div className="flex items-center space-x-2 text-gray-600 text-sm">
-                              <Calendar className="w-4 h-4" />
-                              <span>Completato il: {new Date(client.end_date).toLocaleDateString('it-IT')}</span>
+                            <div className="flex items-center space-x-2 text-gray-600 text-xs sm:text-sm">
+                              <Calendar className="w-4 h-4 flex-shrink-0" />
+                              <span>Completato: {new Date(client.end_date).toLocaleDateString('it-IT')}</span>
                             </div>
                           )}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                       {client.status === 'new' && (
                         <>
                           <button
@@ -416,30 +417,30 @@ export default function ClientsManagement() {
                         </>
                       )}
                       {client.status === 'in_progress' && (
-  <>
-    <button
-      onClick={() => handleEditClient(client)}
-      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-      title="Modifica Cliente"
-    >
-      <Edit2 className="w-4 h-4" />
-    </button>
-    <button
-      onClick={() => handleCompleteClient(client)}
-      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-      title="Segna come Completato"
-    >
-      <CheckCircle className="w-5 h-5" />
-    </button>
-    <button
-      onClick={() => handleDeleteClient(client.id)}
-      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-      title="Elimina Cliente"
-    >
-      <Trash2 className="w-4 h-4" />
-    </button>
-  </>
-)}
+                        <>
+                          <button
+                            onClick={() => handleEditClient(client)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Modifica Cliente"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleCompleteClient(client)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Segna come Completato"
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(client.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Elimina Cliente"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -451,44 +452,44 @@ export default function ClientsManagement() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-4 sm:mb-6">
               {editingClient ? 'Modifica Cliente' : 'Nuovo Cliente'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nome Cliente *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nome Cliente *</label>
                 <input
                   type="text"
                   required
                   placeholder="es. Mario Rossi"
                   value={clientForm.name}
                   onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Note / Descrizione Lavori
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   placeholder="Descrizione dei lavori da fare, indirizzo, note varie..."
                   value={clientForm.notes}
                   onChange={(e) => setClientForm({ ...clientForm, notes: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               {(!editingClient || editingClient.status === 'new') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Data Sopralluogo</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Data Sopralluogo</label>
                   <input
                     type="date"
                     value={clientForm.survey_date}
                     onChange={(e) => setClientForm({ ...clientForm, survey_date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               )}
@@ -496,11 +497,11 @@ export default function ClientsManagement() {
               {editingClient && editingClient.status === 'in_progress' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cantiere</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Cantiere</label>
                     <select
                       value={clientForm.worksite_id}
                       onChange={(e) => setClientForm({ ...clientForm, worksite_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      className="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                       style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     >
                       <option value="">Seleziona cantiere</option>
@@ -512,53 +513,53 @@ export default function ClientsManagement() {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Data Inizio Lavori</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Data Inizio</label>
                       <input
                         type="date"
                         value={clientForm.start_date}
                         onChange={(e) => setClientForm({ ...clientForm, start_date: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Data Fine Lavori</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Data Fine</label>
                       <input
                         type="date"
                         value={clientForm.end_date}
                         onChange={(e) => setClientForm({ ...clientForm, end_date: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                       Problemi ed Imprevisti
                     </label>
                     <textarea
-                      rows={4}
-                      placeholder="Descrivi eventuali problemi riscontrati durante i lavori..."
+                      rows={3}
+                      placeholder="Descrivi eventuali problemi..."
                       value={clientForm.issues}
                       onChange={(e) => setClientForm({ ...clientForm, issues: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </>
               )}
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
+                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2.5 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
                 >
                   {editingClient ? 'Aggiorna' : 'Aggiungi'}
                 </button>
