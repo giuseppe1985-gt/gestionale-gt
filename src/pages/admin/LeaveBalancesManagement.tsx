@@ -105,10 +105,10 @@ export default function LeaveBalancesManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestione Monte Ore</h1>
-        <p className="text-gray-600 mt-1">Configura le ore disponibili per ferie e ROL</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Gestione Monte Ore</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Configura le ore disponibili per ferie e ROL</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -204,8 +204,8 @@ export default function LeaveBalancesManagement() {
         </div>
 
         {workers.length === 0 && (
-          <div className="text-center py-12">
-            <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <div className="text-center py-8 sm:py-12">
+            <User className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">Nessun utente trovato</p>
           </div>
         )}
