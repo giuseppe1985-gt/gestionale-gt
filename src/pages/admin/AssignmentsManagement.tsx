@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Calendar, Plus, Trash2, Building2, User, Clock, Edit, Truck, Check, Users } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyNewAssignment } from '../../lib/notifications';
-import LoadingDots from '../../components/LoadingDots';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Worksite = Database['public']['Tables']['worksites']['Row'];
@@ -231,7 +230,7 @@ export default function AssignmentsManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingDots />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -240,8 +239,8 @@ export default function AssignmentsManagement() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-aim-text-primary">Gestione Assegnazioni</h1>
-          <p className="text-aim-text-secondary mt-1 text-sm sm:text-base">Assegna personale ai cantieri</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestione Assegnazioni</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Assegna personale ai cantieri</p>
         </div>
         <button
           onClick={() => {
@@ -251,39 +250,39 @@ export default function AssignmentsManagement() {
             setShowModal(true);
           }}
           disabled={!canPerformActions}
-          className={`flex items-center space-x-2 bg-[#4DD0E1] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all w-full sm:w-auto justify-center ${!canPerformActions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-aim-accent-hover'}`}
+          className={`flex items-center space-x-2 bg-[#4DD0E1] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all w-full sm:w-auto justify-center ${!canPerformActions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gradient-to-r from-blue-900 to-blue-700-hover'}`}
         >
           <Plus className="w-5 h-5" />
           <span>Nuova Assegnazione</span>
         </button>
       </div>
 
-      <div className="bg-aim-card rounded-xl p-4">
+      <div className="bg-white rounded-xl p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center space-x-3">
-            <Calendar className="w-5 h-5 text-[#4DD0E1]" />
+            <Calendar className="w-5 h-5 text-blue-500" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 sm:flex-none px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <span className="text-aim-text-secondary text-sm sm:text-base">{formatDate(selectedDate)}</span>
+          <span className="text-gray-600 text-sm sm:text-base">{formatDate(selectedDate)}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {assignments.length === 0 ? (
-          <div className="col-span-2 text-center py-12 bg-aim-card rounded-xl">
-            <Calendar className="w-16 h-16 text-aim-text-muted mx-auto mb-4" />
-            <p className="text-aim-text-secondary">Nessuna assegnazione per questa data</p>
+          <div className="col-span-2 text-center py-12 bg-white rounded-xl">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">Nessuna assegnazione per questa data</p>
           </div>
         ) : (
           assignments.map((assignment) => (
             <div
               key={assignment.id}
-              className="bg-aim-card rounded-xl p-6"
+              className="bg-white rounded-xl p-6"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-3">
@@ -299,14 +298,14 @@ export default function AssignmentsManagement() {
   </div>
 )}
                   <div>
-                    <h3 className="font-semibold text-aim-text-primary">{assignment.worker.full_name}</h3>
-                    <p className="text-sm text-aim-text-secondary">{assignment.worker.position}</p>
+                    <h3 className="font-semibold text-gray-900">{assignment.worker.full_name}</h3>
+                    <p className="text-sm text-gray-600">{assignment.worker.position}</p>
                   </div>
                 </div>
                 <div className="flex space-x-1">
                   <button
                     onClick={() => handleEdit(assignment)}
-                    className="p-2 text-[#4DD0E1] hover:bg-[#4DD0E1]/20 rounded-lg transition-colors"
+                    className="p-2 text-blue-500 hover:bg-[#4DD0E1]/20 rounded-lg transition-colors"
                     title="Modifica"
                   >
                     <Edit className="w-4 h-4 text-black dark:text-white" />
@@ -323,20 +322,20 @@ export default function AssignmentsManagement() {
 
               <div className="space-y-3">
                 <div className="flex items-start space-x-2">
-                  <Building2 className="w-5 h-5 text-aim-text-muted mt-0.5" />
+                  <Building2 className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-aim-text-secondary">Cantiere {assignment.has_double_site ? 'Mattutino' : ''}</p>
-                    <p className="font-medium text-aim-text-primary">{assignment.worksite.name}</p>
-                    <p className="text-sm text-aim-text-secondary">{assignment.worksite.address}</p>
+                    <p className="text-sm text-gray-600">Cantiere {assignment.has_double_site ? 'Mattutino' : ''}</p>
+                    <p className="font-medium text-gray-900">{assignment.worksite.name}</p>
+                    <p className="text-sm text-gray-600">{assignment.worksite.address}</p>
                   </div>
                 </div>
 
                 {assignment.start_time && (
                   <div className="flex items-center space-x-2">
-                    <Clock className="w-5 h-5 text-aim-text-muted" />
+                    <Clock className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-aim-text-secondary">Orario</p>
-                      <p className="font-medium text-aim-text-primary">
+                      <p className="text-sm text-gray-600">Orario</p>
+                      <p className="font-medium text-gray-900">
                         {assignment.start_time.substring(0, 5)} - {assignment.end_time?.substring(0, 5) || '...'}
                       </p>
                     </div>
@@ -345,22 +344,22 @@ export default function AssignmentsManagement() {
 
                 {assignment.has_double_site && assignment.second_worksite && (
                   <>
-                    <div className="border-t border-aim-border my-3 pt-3"></div>
+                    <div className="border-t border-gray-300 my-3 pt-3"></div>
                     <div className="flex items-start space-x-2">
-                      <Building2 className="w-5 h-5 text-[#4DD0E1] mt-0.5" />
+                      <Building2 className="w-5 h-5 text-blue-500 mt-0.5" />
                       <div className="flex-1">
-                        <p className="text-sm text-aim-text-secondary">Cantiere Pomeridiano</p>
-                        <p className="font-medium text-aim-text-primary">{assignment.second_worksite.name}</p>
-                        <p className="text-sm text-aim-text-secondary">{assignment.second_worksite.address}</p>
+                        <p className="text-sm text-gray-600">Cantiere Pomeridiano</p>
+                        <p className="font-medium text-gray-900">{assignment.second_worksite.name}</p>
+                        <p className="text-sm text-gray-600">{assignment.second_worksite.address}</p>
                       </div>
                     </div>
 
                     {assignment.second_start_time && (
                       <div className="flex items-center space-x-2">
-                        <Clock className="w-5 h-5 text-aim-text-muted" />
+                        <Clock className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm text-aim-text-secondary">Orario</p>
-                          <p className="font-medium text-aim-text-primary">
+                          <p className="text-sm text-gray-600">Orario</p>
+                          <p className="font-medium text-gray-900">
                             {assignment.second_start_time.substring(0, 5)} - {assignment.second_end_time?.substring(0, 5) || '...'}
                           </p>
                         </div>
@@ -371,28 +370,28 @@ export default function AssignmentsManagement() {
 
                 {assignment.vehicle && (
                   <div className="flex items-center space-x-2">
-                    <Truck className="w-5 h-5 text-aim-text-muted" />
+                    <Truck className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm text-aim-text-secondary">Furgone</p>
-                      <p className="font-medium text-aim-text-primary">{assignment.vehicle.plate}</p>
+                      <p className="text-sm text-gray-600">Furgone</p>
+                      <p className="font-medium text-gray-900">{assignment.vehicle.plate}</p>
                     </div>
                   </div>
                 )}
 
                 {assignment.instructions && (
-                  <div className="mt-3 p-3 bg-[#4DD0E1]/20 rounded-lg border border-[#4DD0E1]/30">
-                    <p className="text-sm text-aim-text-secondary mb-1">Istruzioni</p>
-                    <p className="text-sm text-aim-text-primary">{assignment.instructions}</p>
+                  <div className="mt-3 p-3 bg-[#4DD0E1]/20 rounded-lg border border-blue-400/30">
+                    <p className="text-sm text-gray-600 mb-1">Istruzioni</p>
+                    <p className="text-sm text-gray-900">{assignment.instructions}</p>
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-aim-border">
+                <div className="pt-3 border-t border-gray-300">
                   {assignment.confirmed ? (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white dark:text-black border border-green-500">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white border border-green-500">
   ✓ Confermato
 </span>
                   ) : (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-aim-card text-black dark:text-white border border-[#4DD0E1]">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-black dark:text-white border border-blue-400">
   In Attesa di Conferma
 </span>
                   )}
@@ -405,21 +404,21 @@ export default function AssignmentsManagement() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-aim-card rounded-xl max-w-md w-full p-6 max-h-screen overflow-y-auto">
-            <h2 className="text-2xl font-bold text-aim-text-primary mb-6">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               {editingId ? 'Modifica Assegnazione' : 'Nuova Assegnazione'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* In modifica: selettore singolo, In creazione: multi-select */}
               {editingId ? (
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Personale *
                   </label>
                   <select
                     value={formData.worker_id}
                     onChange={(e) => setFormData({ ...formData, worker_id: e.target.value })}
-                    className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -433,14 +432,14 @@ export default function AssignmentsManagement() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Personale * ({formData.worker_ids.length} selezionati)
                   </label>
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setShowWorkerDropdown(!showWorkerDropdown)}
-                      className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent text-left bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                       style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     >
                       {formData.worker_ids.length === 0
@@ -449,8 +448,8 @@ export default function AssignmentsManagement() {
                     </button>
                     
                     {showWorkerDropdown && (
-                      <div className="absolute z-50 w-full mt-1 bg-aim-card border border-aim-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        <div className="p-2 border-b border-aim-border">
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div className="p-2 border-b border-gray-300">
                           <button
                             type="button"
                             onClick={() => {
@@ -460,7 +459,7 @@ export default function AssignmentsManagement() {
                                 setFormData({ ...formData, worker_ids: workers.map(w => w.id) });
                               }
                             }}
-                            className="text-sm text-aim-accent hover:underline"
+                            className="text-sm text-blue-600 hover:underline"
                           >
                             {formData.worker_ids.length === workers.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
                           </button>
@@ -468,7 +467,7 @@ export default function AssignmentsManagement() {
                         {workers.map((worker) => (
                           <label
                             key={worker.id}
-                            className="flex items-center px-4 py-2 hover:bg-aim-card-secondary cursor-pointer"
+                            className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -486,9 +485,9 @@ export default function AssignmentsManagement() {
                                   });
                                 }
                               }}
-                              className="w-4 h-4 text-aim-accent border-aim-border rounded focus:ring-aim-accent"
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
-                            <span className="ml-3 text-sm text-aim-text-primary">
+                            <span className="ml-3 text-sm text-gray-900">
                               {worker.full_name} {worker.position && `- ${worker.position}`}
                             </span>
                           </label>
@@ -503,7 +502,7 @@ export default function AssignmentsManagement() {
                         return worker ? (
                           <span
                             key={id}
-                            className="inline-flex items-center px-2 py-1 text-xs bg-aim-accent/20 text-aim-accent rounded-full"
+                            className="inline-flex items-center px-2 py-1 text-xs bg-gradient-to-r from-blue-900 to-blue-700/20 text-blue-600 rounded-full"
                           >
                             {worker.full_name}
                             <button
@@ -530,13 +529,13 @@ export default function AssignmentsManagement() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Cantiere *
                 </label>
                 <select
                   value={formData.worksite_id}
                   onChange={(e) => setFormData({ ...formData, worksite_id: e.target.value })}
-                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                   required
                 >
@@ -550,13 +549,13 @@ export default function AssignmentsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Furgone
                 </label>
                 <select
                   value={formData.vehicle_id}
                   onChange={(e) => setFormData({ ...formData, vehicle_id: e.target.value })}
-                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                 >
                   <option value="">Nessun furgone</option>
@@ -569,68 +568,68 @@ export default function AssignmentsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Data *
                 </label>
                 <input
                   type="date"
                   value={formData.assigned_date}
                   onChange={(e) => setFormData({ ...formData, assigned_date: e.target.value })}
-                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Ora Inizio
                   </label>
                   <input
                     type="time"
                     value={formData.start_time}
                     onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                    className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Ora Fine
                   </label>
                   <input
                     type="time"
                     value={formData.end_time}
                     onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                    className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 p-3 bg-aim-card-secondary rounded-lg">
+              <div className="flex items-center space-x-2 p-3 bg-gray-100 rounded-lg">
                 <input
                   type="checkbox"
                   id="double_site"
                   checked={formData.has_double_site}
                   onChange={(e) => setFormData({ ...formData, has_double_site: e.target.checked })}
-                  className="w-4 h-4 text-[#4DD0E1] border-aim-border rounded focus:ring-[#4DD0E1]"
+                  className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-[#4DD0E1]"
                 />
-                <label htmlFor="double_site" className="text-sm font-medium text-aim-text-primary cursor-pointer">
+                <label htmlFor="double_site" className="text-sm font-medium text-gray-900 cursor-pointer">
                   Doppio Cantiere (mattina e pomeriggio)
                 </label>
               </div>
 
               {formData.has_double_site && (
-                <div className="space-y-4 p-4 bg-[#4DD0E1]/20 rounded-lg border border-[#4DD0E1]/30">
-                  <h3 className="font-semibold text-aim-text-primary">Secondo Cantiere</h3>
+                <div className="space-y-4 p-4 bg-[#4DD0E1]/20 rounded-lg border border-blue-400/30">
+                  <h3 className="font-semibold text-gray-900">Secondo Cantiere</h3>
 
                   <div>
-                    <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
                       Cantiere Pomeridiano *
                     </label>
                     <select
                       value={formData.second_worksite_id}
                       onChange={(e) => setFormData({ ...formData, second_worksite_id: e.target.value })}
-                      className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                       style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                       required={formData.has_double_site}
                     >
@@ -645,25 +644,25 @@ export default function AssignmentsManagement() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
                         Ora Inizio
                       </label>
                       <input
                         type="time"
                         value={formData.second_start_time}
                         onChange={(e) => setFormData({ ...formData, second_start_time: e.target.value })}
-                        className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
                         Ora Fine
                       </label>
                       <input
                         type="time"
                         value={formData.second_end_time}
                         onChange={(e) => setFormData({ ...formData, second_end_time: e.target.value })}
-                        className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -671,13 +670,13 @@ export default function AssignmentsManagement() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Istruzioni
                 </label>
                 <textarea
                   value={formData.instructions}
                   onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Istruzioni speciali per il lavoratore..."
                 />
@@ -691,13 +690,13 @@ export default function AssignmentsManagement() {
                     resetForm();
                     setEditingId(null);
                   }}
-                  className="flex-1 px-4 py-2 border border-aim-border text-aim-text-primary rounded-lg hover:bg-aim-card-secondary transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#4DD0E1] text-white px-4 py-2 rounded-lg hover:bg-aim-accent-hover transition-all"
+                  className="flex-1 bg-[#4DD0E1] text-white px-4 py-2 rounded-lg hover:bg-gradient-to-r from-blue-900 to-blue-700-hover transition-all"
                 >
                   {editingId ? 'Salva Modifiche' : 'Crea'}
                 </button>
