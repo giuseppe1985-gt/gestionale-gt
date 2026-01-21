@@ -246,10 +246,10 @@ export default function ClientsManagement() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Gestione Clienti</h1>
-          <p className="text-gray-600 mt-1">Gestisci clienti nuovi, in corso e completati</p>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci clienti nuovi, in corso e completati</p>
         </div>
         <button
           onClick={() => {
@@ -257,7 +257,7 @@ export default function ClientsManagement() {
             resetForm();
             setShowModal(true);
           }}
-          className="bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all flex items-center space-x-2 shadow-lg"
+          className="bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all flex items-center justify-center space-x-2 shadow-lg w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Nuovo Cliente</span>
@@ -265,52 +265,52 @@ export default function ClientsManagement() {
       </div>
 
       <div className="bg-white rounded-xl shadow-md border border-gray-200">
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('new')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'new'
                 ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <UserPlus className="w-5 h-5" />
-            <span>Clienti Nuovi</span>
-            <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-base whitespace-nowrap">Clienti Nuovi</span>
+            <span className="bg-blue-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {clients.filter((c) => c.status === 'new').length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('in_progress')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'in_progress'
                 ? 'border-b-2 border-yellow-600 text-yellow-600 bg-yellow-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <Clock className="w-5 h-5" />
-            <span>In Corso</span>
-            <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-base whitespace-nowrap">In Corso</span>
+            <span className="bg-yellow-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {clients.filter((c) => c.status === 'in_progress').length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('completed')}
-            className={`flex-1 px-6 py-4 text-center font-medium transition-colors flex items-center justify-center space-x-2 ${
+            className={`flex-1 min-w-0 px-3 sm:px-6 py-3 sm:py-4 text-center font-medium transition-colors flex items-center justify-center space-x-1 sm:space-x-2 ${
               activeTab === 'completed'
                 ? 'border-b-2 border-green-600 text-green-600 bg-green-50'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
-            <CheckCircle className="w-5 h-5" />
-            <span>Lavori Finiti</span>
-            <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-base whitespace-nowrap">Lavori Finiti</span>
+            <span className="bg-green-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {clients.filter((c) => c.status === 'completed').length}
             </span>
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {filteredClients.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
