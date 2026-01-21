@@ -99,16 +99,16 @@ export default function WorkerAssignments() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Le Mie Assegnazioni</h1>
-        <p className="text-gray-600 mt-1">Visualizza e conferma le tue assegnazioni</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Le Mie Assegnazioni</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Visualizza e conferma le tue assegnazioni</p>
       </div>
 
       <div className="space-y-4">
         {assignments.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <div className="text-center py-8 sm:py-12 bg-white rounded-xl shadow-md">
+            <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">Nessuna assegnazione programmata</p>
           </div>
         ) : (
