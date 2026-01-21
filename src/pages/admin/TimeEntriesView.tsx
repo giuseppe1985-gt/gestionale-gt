@@ -293,10 +293,10 @@ export default function TimeEntriesView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Timbrature</h1>
-        <p className="text-gray-600 mt-1">Visualizza e gestisci le timbrature e le ore di malattia</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Timbrature</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Visualizza e gestisci le timbrature e le ore di malattia</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-4">
@@ -376,7 +376,7 @@ export default function TimeEntriesView() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {Array.from(workerGroups).map(([workerId, entries]) => {
           const worker = entries.length > 0 ? entries[0].worker : workers.find(w => w.id === workerId);
           if (!worker) return null;
@@ -385,7 +385,7 @@ export default function TimeEntriesView() {
           const sickLeaveHours = calculateWorkerSickLeaveHours(workerId);
 
           return (
-            <div key={workerId} className="bg-white rounded-xl shadow-md p-6">
+            <div key={workerId} className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
                   {worker.avatar_url ? (
@@ -408,7 +408,7 @@ export default function TimeEntriesView() {
                   {totalHours && (
                     <>
                       <p className="text-sm text-gray-600">Ore Totali nel Periodo</p>
-                      <p className="text-2xl font-bold text-blue-900">{totalHours}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-blue-900">{totalHours}</p>
                     </>
                   )}
                   {sickLeaveHours > 0 && (
@@ -490,8 +490,8 @@ export default function TimeEntriesView() {
       </div>
 
       {timeEntries.length === 0 && sickLeaveRequests.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-xl shadow-md">
-          <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <div className="text-center py-8 sm:py-12 bg-white rounded-xl shadow-md">
+          <Clock className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600">Nessuna timbratura o malattia nel periodo selezionato</p>
         </div>
       )}
