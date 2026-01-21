@@ -301,12 +301,12 @@ export default function Archive() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Archivio</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Archivio</h1>
         <p className="mt-2 text-gray-600">Visualizza tutti i dati storici dell'organizzazione</p>
       </div>
 
-      <div className="mb-6 border-b border-gray-200">
+      <div className="mb-4 sm:mb-6 border-b border-gray-200">
         <div className="flex space-x-4 overflow-x-auto">
           {tabs.map((tab) => (
             <button
