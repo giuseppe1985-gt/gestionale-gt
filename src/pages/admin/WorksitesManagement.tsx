@@ -139,25 +139,25 @@ export default function WorksitesManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestione Cantieri</h1>
-          <p className="text-gray-600 mt-1">Aggiungi e gestisci i cantieri</p>
+          <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900">Gestione Cantieri</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Aggiungi e gestisci i cantieri</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
+          className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Aggiungi Cantiere</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-4">
+      <div className="bg-white rounded-xl shadow-md p-3 sm:p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -165,63 +165,63 @@ export default function WorksitesManagement() {
             placeholder="Cerca per nome o indirizzo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3 sm:gap-6">
         {filteredWorksites.map((worksite) => (
           <div
             key={worksite.id}
-            className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6"
+            className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-4 sm:p-6"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-white" />
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-1">
                 <button
                   onClick={() => setSelectedWorksiteFinancials(worksite.id)}
                   className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                   title="Dati Finanziari"
                 >
-                  <Euro className="w-4 h-4" />
+                  <Euro className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => openEditModal(worksite)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(worksite.id)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{worksite.name}</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{worksite.name}</h3>
             <div className="flex items-start space-x-2 text-gray-600">
-              <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-              <p className="text-sm">{worksite.address}</p>
+              <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <p className="text-xs sm:text-sm">{worksite.address}</p>
             </div>
           </div>
         ))}
       </div>
 
       {filteredWorksites.length === 0 && (
-        <div className="text-center py-12">
-          <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Nessun cantiere trovato</p>
+        <div className="text-center py-8 sm:py-8 sm:py-12">
+          <Building2 className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-sm sm:text-base">Nessun cantiere trovato</p>
         </div>
       )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-4 sm:mb-6">
               {editingWorksite ? 'Modifica Cantiere' : 'Aggiungi Cantiere'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -233,7 +233,7 @@ export default function WorksitesManagement() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -245,26 +245,26 @@ export default function WorksitesManagement() {
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   required
                 />
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
+                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2.5 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
                 >
                   {editingWorksite ? 'Aggiorna' : 'Aggiungi'}
                 </button>
