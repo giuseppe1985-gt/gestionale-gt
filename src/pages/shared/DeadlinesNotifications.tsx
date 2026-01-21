@@ -314,10 +314,10 @@ export default function DeadlinesNotifications() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Avvisi Scadenze</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Avvisi Scadenze</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">
           {canViewAllDeadlines ? 'Monitora tutte le scadenze aziendali' : 'Le tue scadenze personali'}
         </p>
       </div>
@@ -338,29 +338,29 @@ export default function DeadlinesNotifications() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 sm:mb-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-sm text-red-600 font-medium">Urgenti</p>
-            <p className="text-3xl font-bold text-red-900 mt-1">{urgentCount}</p>
+            <p className="text-xl sm:text-3xl font-bold text-red-900 mt-1">{urgentCount}</p>
           </div>
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-sm text-orange-600 font-medium">Priorità Alta</p>
-            <p className="text-3xl font-bold text-orange-900 mt-1">{highCount}</p>
+            <p className="text-xl sm:text-3xl font-bold text-orange-900 mt-1">{highCount}</p>
           </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-600 font-medium">Priorità Media</p>
-            <p className="text-3xl font-bold text-yellow-900 mt-1">
+            <p className="text-xl sm:text-3xl font-bold text-yellow-900 mt-1">
               {deadlines.filter(d => d.priority === 'medium').length}
             </p>
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-600 font-medium">Totale</p>
-            <p className="text-3xl font-bold text-blue-900 mt-1">{deadlines.length}</p>
+            <p className="text-xl sm:text-3xl font-bold text-blue-900 mt-1">{deadlines.length}</p>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 mb-4 sm:mb-6">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filtra per Priorità
@@ -456,7 +456,7 @@ export default function DeadlinesNotifications() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-8 sm:py-12">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-600">
               {deadlines.length === 0
