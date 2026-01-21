@@ -249,7 +249,7 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
           <div className="flex justify-between items-center">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold">{worker.full_name}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold">{worker.full_name}</h2>
                 <span className="px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-medium">
                   {worker.role === 'worker' && 'Operaio'}
                   {worker.role === 'administrator' && 'Amministratore'}
@@ -271,7 +271,7 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
         <div className="flex border-b">
           <button
             onClick={() => setActiveTab('courses')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
               activeTab === 'courses'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-50'
@@ -282,7 +282,7 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
           </button>
           <button
             onClick={() => setActiveTab('medical')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
               activeTab === 'medical'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-50'
@@ -293,7 +293,7 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
           </button>
           <button
             onClick={() => setActiveTab('card')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
               activeTab === 'card'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-50'
@@ -304,7 +304,7 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'courses' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -384,8 +384,8 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
               )}
 
               {courses.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <GraduationCap className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                <div className="text-center py-8 sm:py-12 text-gray-500">
+                  <GraduationCap className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" />
                   <p>Nessun corso registrato</p>
                 </div>
               ) : (
@@ -503,8 +503,8 @@ export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
               )}
 
               {medicalCheckups.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <Stethoscope className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                <div className="text-center py-8 sm:py-12 text-gray-500">
+                  <Stethoscope className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" />
                   <p>Nessuna visita medica registrata</p>
                 </div>
               ) : (
