@@ -1,21 +1,29 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { MessageSquare, Plus, Trash2, AlertCircle, Info, Bell, FileText, Download, Upload, User } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, AlertCircle, Info, Bell, FileText, Download, Upload, User, Users, Check } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyNewAnnouncement } from '../../lib/notifications';
+import LoadingDots from '../../components/LoadingDots';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'] & {
   worksite?: { name: string } | null;
   target_worker?: { full_name: string } | null;
   creator?: { full_name: string; avatar_url: string | null } | null;
 };
+
+// Tipo per annunci raggruppati (quando inviati a multipli lavoratori)
+type GroupedAnnouncement = Announcement & {
+  target_workers?: { id: string; full_name: string }[];
+  grouped_ids?: string[]; // IDs degli annunci raggruppati per eliminazione multipla
+};
+
 type Worksite = Database['public']['Tables']['worksites']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function AnnouncementsManagement() {
   const { user, profile } = useAuth();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcements, setAnnouncements] = useState<GroupedAnnouncement[]>([]);
   const [worksites, setWorksites] = useState<Worksite[]>([]);
   const [workers, setWorkers] = useState<Profile[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -23,15 +31,27 @@ export default function AnnouncementsManagement() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Gestionale GT non ha sistema piani - sempre attivo
+  const canPerformActions = true;
+
+  // Ruoli che vedono tutti gli annunci raggruppati
+  const canSeeAllAnnouncements = profile?.role === 'admin' || profile?.role === 'administrator' || profile?.role === 'org_manager';
+  
+  // Ruoli che possono creare annunci (tutti tranne operai)
+  const canCreateAnnouncements = profile?.role !== 'worker';
+
   const [formData, setFormData] = useState({
     title: '',
     message: '',
     priority: 'normal' as 'normal' | 'important' | 'urgent',
-    target_audience: 'all' as 'all' | 'specific' | 'worker',
+    target_audience: 'all' as 'all' | 'specific' | 'worker' | 'workers',
     target_worksite_id: '',
     target_worker_id: '',
+    target_worker_ids: [] as string[],
     expires_at: new Date().toISOString().split('T')[0],
   });
+
+  const [showWorkerDropdown, setShowWorkerDropdown] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -60,22 +80,86 @@ export default function AnnouncementsManagement() {
         .eq('status', 'active')
         .order('full_name');
 
-      // Costruisci gli annunci con i dettagli incluso il creator
-      const announcementsWithDetails = (announcementsData || []).map(announcement => {
-        const creator = workersData?.find(w => w.id === announcement.created_by);
-        return {
-          ...announcement,
-          worksite: announcement.target_worksite_id
-            ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
-            : null,
-          target_worker: announcement.target_worker_id
-            ? workersData?.find(w => w.id === announcement.target_worker_id)
-            : null,
-          creator: creator ? { full_name: creator.full_name, avatar_url: creator.avatar_url } : null,
-        };
-      });
+      // Ruoli che vedono tutti gli annunci raggruppati
+      const isFullAccessRole = profile?.role === 'admin' || profile?.role === 'administrator' || profile?.role === 'org_manager';
+      
+      let processedAnnouncements: GroupedAnnouncement[] = [];
 
-      setAnnouncements(announcementsWithDetails);
+      if (isFullAccessRole) {
+        // Admin/Amministratore/Org Manager: raggruppa annunci multipli
+        const groupedMap = new Map<string, GroupedAnnouncement>();
+        
+        (announcementsData || []).forEach(announcement => {
+          // Crea chiave di raggruppamento: titolo + messaggio + created_by + minuto creazione
+          const createdAtMinute = announcement.created_at?.substring(0, 16) || ''; // YYYY-MM-DDTHH:MM
+          const groupKey = `${announcement.title}|${announcement.message}|${announcement.created_by}|${createdAtMinute}|${announcement.priority}`;
+          
+          const creator = workersData?.find(w => w.id === announcement.created_by);
+          const targetWorker = announcement.target_worker_id 
+            ? workersData?.find(w => w.id === announcement.target_worker_id)
+            : null;
+          
+          if (groupedMap.has(groupKey) && announcement.target_audience === 'worker') {
+            // Aggiungi al gruppo esistente
+            const existing = groupedMap.get(groupKey)!;
+            if (targetWorker) {
+              existing.target_workers = existing.target_workers || [];
+              existing.target_workers.push({ id: targetWorker.id, full_name: targetWorker.full_name });
+            }
+            existing.grouped_ids = existing.grouped_ids || [existing.id];
+            existing.grouped_ids.push(announcement.id);
+          } else {
+            // Nuovo annuncio o primo del gruppo
+            const newAnnouncement: GroupedAnnouncement = {
+              ...announcement,
+              worksite: announcement.target_worksite_id
+                ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
+                : null,
+              target_worker: targetWorker ? { full_name: targetWorker.full_name } : null,
+              creator: creator ? { full_name: creator.full_name, avatar_url: creator.avatar_url } : null,
+              target_workers: targetWorker ? [{ id: targetWorker.id, full_name: targetWorker.full_name }] : undefined,
+              grouped_ids: [announcement.id],
+            };
+            groupedMap.set(groupKey, newAnnouncement);
+          }
+        });
+        
+        processedAnnouncements = Array.from(groupedMap.values());
+      } else {
+        // Altri ruoli: vedono solo i propri annunci
+        const filteredAnnouncements = (announcementsData || []).filter(announcement => {
+          // Annunci per tutti
+          if (announcement.target_audience === 'all') {
+            return true;
+          }
+          // Annunci destinati a loro
+          if (announcement.target_audience === 'worker' && announcement.target_worker_id === user?.id) {
+            return true;
+          }
+          // Annunci per un cantiere specifico
+          if (announcement.target_audience === 'specific') {
+            return true;
+          }
+          return false;
+        });
+
+        processedAnnouncements = filteredAnnouncements.map(announcement => {
+          const creator = workersData?.find(w => w.id === announcement.created_by);
+          return {
+            ...announcement,
+            worksite: announcement.target_worksite_id
+              ? worksitesData?.find(w => w.id === announcement.target_worksite_id)
+              : null,
+            target_worker: announcement.target_worker_id
+              ? { full_name: workersData?.find(w => w.id === announcement.target_worker_id)?.full_name || '' }
+              : null,
+            creator: creator ? { full_name: creator.full_name, avatar_url: creator.avatar_url } : null,
+            grouped_ids: [announcement.id],
+          };
+        });
+      }
+
+      setAnnouncements(processedAnnouncements);
       setWorksites(worksitesData || []);
       setWorkers(workersData || []);
     } catch (error) {
@@ -114,32 +198,71 @@ export default function AnnouncementsManagement() {
       const expiresAt = new Date(formData.expires_at);
       expiresAt.setHours(23, 59, 59, 999);
 
-      const { data: newAnnouncement, error } = await supabase.from('announcements').insert({
-        title: formData.title,
-        message: formData.message,
-        priority: formData.priority,
-        target_audience: formData.target_audience,
-        target_worksite_id: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
-        target_worker_id: formData.target_audience === 'worker' ? formData.target_worker_id : null,
-        attachment_url: attachmentUrl,
-        attachment_name: attachmentName,
-        created_by: user?.id || '',
-        organization_id: profile?.organization_id,
-        expires_at: expiresAt.toISOString(),
-      }).select().single();
+      // Se sono selezionati multipli lavoratori, crea un annuncio per ognuno
+      if (formData.target_audience === 'workers' && formData.target_worker_ids.length > 0) {
+        const announcementsToCreate = formData.target_worker_ids.map(workerId => ({
+          title: formData.title,
+          message: formData.message,
+          priority: formData.priority,
+          target_audience: 'worker' as const,
+          target_worksite_id: null,
+          target_worker_id: workerId,
+          attachment_url: attachmentUrl,
+          attachment_name: attachmentName,
+          created_by: user?.id || '',
+          organization_id: profile?.organization_id,
+          expires_at: expiresAt.toISOString(),
+        }));
 
-      if (error) throw error;
+        const { data: newAnnouncements, error } = await supabase
+          .from('announcements')
+          .insert(announcementsToCreate)
+          .select();
 
-      if (newAnnouncement && profile?.organization_id) {
-  await notifyNewAnnouncement({
-    announcementId: newAnnouncement.id,
-    title: formData.title,
-    organizationId: profile.organization_id,
-    targetAudience: formData.target_audience,
-    targetWorkerId: formData.target_audience === 'worker' ? formData.target_worker_id : null,
-    targetWorksiteId: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
-  });
-}
+        if (error) throw error;
+
+        // Invia notifiche a tutti i lavoratori selezionati
+        if (newAnnouncements && profile?.organization_id) {
+          for (const announcement of newAnnouncements) {
+            await notifyNewAnnouncement({
+              announcementId: announcement.id,
+              title: formData.title,
+              organizationId: profile.organization_id,
+              targetAudience: 'worker',
+              targetWorkerId: announcement.target_worker_id,
+              targetWorksiteId: null,
+            });
+          }
+        }
+      } else {
+        // Comportamento originale per singolo lavoratore o altri destinatari
+        const { data: newAnnouncement, error } = await supabase.from('announcements').insert({
+          title: formData.title,
+          message: formData.message,
+          priority: formData.priority,
+          target_audience: formData.target_audience === 'workers' ? 'worker' : formData.target_audience,
+          target_worksite_id: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
+          target_worker_id: formData.target_audience === 'worker' ? formData.target_worker_id : null,
+          attachment_url: attachmentUrl,
+          attachment_name: attachmentName,
+          created_by: user?.id || '',
+          organization_id: profile?.organization_id,
+          expires_at: expiresAt.toISOString(),
+        }).select().single();
+
+        if (error) throw error;
+
+        if (newAnnouncement && profile?.organization_id) {
+          await notifyNewAnnouncement({
+            announcementId: newAnnouncement.id,
+            title: formData.title,
+            organizationId: profile.organization_id,
+            targetAudience: formData.target_audience,
+            targetWorkerId: formData.target_audience === 'worker' ? formData.target_worker_id : null,
+            targetWorksiteId: formData.target_audience === 'specific' ? formData.target_worksite_id : null,
+          });
+        }
+      }
 
       setShowModal(false);
       resetForm();
@@ -186,9 +309,11 @@ export default function AnnouncementsManagement() {
       target_audience: 'all',
       target_worksite_id: '',
       target_worker_id: '',
+      target_worker_ids: [],
       expires_at: new Date().toISOString().split('T')[0],
     });
     setSelectedFile(null);
+    setShowWorkerDropdown(false);
   };
 
   const handleDownloadAttachment = async (attachmentUrl: string, attachmentName: string) => {
@@ -227,11 +352,11 @@ export default function AnnouncementsManagement() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 border-red-300 text-red-900';
+        return 'bg-red-900/30 border-red-500/50 text-red-400';
       case 'important':
-        return 'bg-orange-100 border-orange-300 text-orange-900';
+        return 'bg-aim-card border-[#4DD0E1] text-[#4DD0E1]';
       default:
-        return 'bg-blue-100 border-blue-300 text-blue-900';
+        return 'bg-aim-card border-aim-border text-aim-text-primary';
     }
   };
 
@@ -256,11 +381,17 @@ export default function AnnouncementsManagement() {
     });
   };
 
-  const getTargetLabel = (announcement: Announcement) => {
+  const getTargetLabel = (announcement: GroupedAnnouncement) => {
     if (announcement.target_audience === 'all') {
       return 'Tutti i lavoratori';
-    } else if (announcement.target_audience === 'worker' && announcement.target_worker) {
-      return `Lavoratore: ${announcement.target_worker.full_name}`;
+    } else if (announcement.target_audience === 'worker') {
+      // Controlla se ci sono più lavoratori destinatari (raggruppati)
+      if (announcement.target_workers && announcement.target_workers.length > 1) {
+        const names = announcement.target_workers.map(w => w.full_name).join(', ');
+        return `Lavoratori: ${names}`;
+      } else if (announcement.target_worker) {
+        return `Lavoratore: ${announcement.target_worker.full_name}`;
+      }
     } else if (announcement.target_audience === 'specific' && announcement.worksite) {
       return `Cantiere: ${announcement.worksite.name}`;
     }
@@ -270,35 +401,40 @@ export default function AnnouncementsManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <LoadingDots />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestione Annunci</h1>
-          <p className="text-gray-600 mt-1">Crea e gestisci le comunicazioni per i lavoratori</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-aim-text-primary">Gestione Annunci</h1>
+          <p className="text-aim-text-secondary mt-1 text-sm sm:text-base">Crea e gestisci le comunicazioni per i lavoratori</p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nuovo Annuncio</span>
-        </button>
+        {/* Operai non possono creare annunci */}
+        {canCreateAnnouncements && (
+          <button
+            onClick={() => {
+              if (!canPerformActions) return;
+              resetForm();
+              setShowModal(true);
+            }}
+            disabled={!canPerformActions}
+            className={`flex items-center justify-center space-x-2 bg-aim-accent text-white dark:text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all w-full sm:w-auto ${!canPerformActions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-aim-accent-hover'}`}
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nuovo Annuncio</span>
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
         {announcements.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Nessun annuncio pubblicato</p>
+          <div className="text-center py-12 bg-aim-card rounded-xl">
+            <MessageSquare className="w-16 h-16 text-aim-text-muted mx-auto mb-4" />
+            <p className="text-aim-text-secondary">Nessun annuncio pubblicato</p>
           </div>
         ) : (
           announcements.map((announcement) => (
@@ -312,14 +448,14 @@ export default function AnnouncementsManagement() {
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
                       <h3 className="text-xl font-semibold">{announcement.title}</h3>
-                      <span className="text-xs px-2 py-1 bg-white bg-opacity-50 rounded">
+                      <span className="text-xs px-2 py-1 bg-aim-card-secondary rounded">
                         {getPriorityLabel(announcement.priority)}
                       </span>
                     </div>
                     <p className="text-sm opacity-75">
                       {formatDate(announcement.created_at)}
                     </p>
-                    {/* Mostra l'autore dell'annuncio */}
+                    {/* FIX: Mostra l'autore dell'annuncio */}
                     {announcement.creator && (
                       <div className="flex items-center gap-2 mt-2">
                         {announcement.creator.avatar_url ? (
@@ -338,12 +474,16 @@ export default function AnnouncementsManagement() {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(announcement.id)}
-                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Solo admin può eliminare tutto, gli altri solo i propri */}
+                {(profile?.role === 'admin' || announcement.created_by === user?.id) && (
+                  <button
+                    onClick={() => handleDelete(announcement.id)}
+                    className="p-2 hover:bg-aim-card-secondary rounded-lg transition-colors"
+                    disabled={!canPerformActions}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               <p className="text-base mb-4 whitespace-pre-wrap">{announcement.message}</p>
@@ -352,7 +492,7 @@ export default function AnnouncementsManagement() {
                 <div className="mb-4">
                   <button
                     onClick={() => handleDownloadAttachment(announcement.attachment_url!, announcement.attachment_name!)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-50 rounded-lg hover:bg-opacity-70 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-aim-card-secondary rounded-lg hover:bg-aim-border transition-colors"
                   >
                     <FileText className="w-4 h-4" />
                     <span className="text-sm font-medium">{announcement.attachment_name}</span>
@@ -362,7 +502,7 @@ export default function AnnouncementsManagement() {
               )}
 
               <div className="flex items-center space-x-4 text-sm">
-                <span className="px-3 py-1 bg-white bg-opacity-50 rounded">
+                <span className="px-3 py-1 bg-aim-card-secondary rounded">
                   {getTargetLabel(announcement)}
                 </span>
               </div>
@@ -372,32 +512,32 @@ export default function AnnouncementsManagement() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-screen overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuovo Annuncio</h2>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-aim-card rounded-xl max-w-2xl w-full p-6 max-h-screen overflow-y-auto">
+            <h2 className="text-2xl font-bold text-aim-text-primary mb-6">Nuovo Annuncio</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Titolo *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
                   required
                   placeholder="Oggetto dell'annuncio"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Messaggio *
                 </label>
                 <textarea
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
                   rows={5}
                   required
                   placeholder="Scrivi il messaggio dell'annuncio..."
@@ -405,14 +545,14 @@ export default function AnnouncementsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Allegato (Opzionale)
                 </label>
                 <div className="flex items-center space-x-3">
                   <label className="flex-1 cursor-pointer">
-                    <div className="flex items-center justify-center space-x-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
-                      <Upload className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm text-gray-600">
+                    <div className="flex items-center justify-center space-x-2 px-4 py-2 border-2 border-dashed border-aim-border rounded-lg hover:border-[#4DD0E1] transition-colors">
+                      <Upload className="w-5 h-5 text-aim-text-secondary" />
+                      <span className="text-sm text-aim-text-secondary">
                         {selectedFile ? selectedFile.name : 'Carica PDF o altro file'}
                       </span>
                     </div>
@@ -427,19 +567,19 @@ export default function AnnouncementsManagement() {
                     <button
                       type="button"
                       onClick={() => setSelectedFile(null)}
-                      className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                     >
                       Rimuovi
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-aim-text-secondary mt-1">
                   Formati supportati: PDF, DOC, DOCX, TXT (max 10MB)
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Priorità *
                 </label>
                 <select
@@ -450,7 +590,7 @@ export default function AnnouncementsManagement() {
                       priority: e.target.value as 'normal' | 'important' | 'urgent',
                     })
                   }
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                 >
                   <option value="normal">Normale</option>
@@ -460,31 +600,34 @@ export default function AnnouncementsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Destinatari *
                 </label>
                 <select
                   value={formData.target_audience}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
-                      target_audience: e.target.value as 'all' | 'specific' | 'worker',
+                      target_audience: e.target.value as 'all' | 'specific' | 'worker' | 'workers',
                       target_worksite_id: '',
                       target_worker_id: '',
-                    })
-                  }
-                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      target_worker_ids: [],
+                    });
+                    setShowWorkerDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                 >
                   <option value="all">Tutti i lavoratori</option>
                   <option value="specific">Cantiere specifico</option>
-                  <option value="worker">Lavoratore specifico</option>
+                  <option value="worker">Lavoratore singolo</option>
+                  <option value="workers">Lavoratori specifici (multipli)</option>
                 </select>
               </div>
 
               {formData.target_audience === 'specific' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
                     Cantiere *
                   </label>
                   <select
@@ -492,7 +635,7 @@ export default function AnnouncementsManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, target_worksite_id: e.target.value })
                     }
-                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -508,7 +651,7 @@ export default function AnnouncementsManagement() {
 
               {formData.target_audience === 'worker' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
                     Lavoratore *
                   </label>
                   <select
@@ -516,7 +659,7 @@ export default function AnnouncementsManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, target_worker_id: e.target.value })
                     }
-                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -530,8 +673,106 @@ export default function AnnouncementsManagement() {
                 </div>
               )}
 
+              {formData.target_audience === 'workers' && (
+                <div>
+                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                    Lavoratori * ({formData.target_worker_ids.length} selezionati)
+                  </label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowWorkerDropdown(!showWorkerDropdown)}
+                      className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent text-left bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
+                    >
+                      {formData.target_worker_ids.length === 0
+                        ? 'Seleziona lavoratori...'
+                        : `${formData.target_worker_ids.length} lavoratori selezionati`}
+                    </button>
+                    
+                    {showWorkerDropdown && (
+                      <div className="absolute z-50 w-full mt-1 bg-aim-card border border-aim-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div className="p-2 border-b border-aim-border">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (formData.target_worker_ids.length === workers.length) {
+                                setFormData({ ...formData, target_worker_ids: [] });
+                              } else {
+                                setFormData({ ...formData, target_worker_ids: workers.map(w => w.id) });
+                              }
+                            }}
+                            className="text-sm text-aim-accent hover:underline"
+                          >
+                            {formData.target_worker_ids.length === workers.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+                          </button>
+                        </div>
+                        {workers.map((worker) => (
+                          <label
+                            key={worker.id}
+                            className="flex items-center px-4 py-2 hover:bg-aim-card-secondary cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.target_worker_ids.includes(worker.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    target_worker_ids: [...formData.target_worker_ids, worker.id],
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    target_worker_ids: formData.target_worker_ids.filter(id => id !== worker.id),
+                                  });
+                                }
+                              }}
+                              className="w-4 h-4 text-aim-accent border-aim-border rounded focus:ring-aim-accent"
+                            />
+                            <span className="ml-3 text-sm text-aim-text-primary">
+                              {worker.full_name} {worker.position ? `(${worker.position})` : ''}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {formData.target_worker_ids.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {formData.target_worker_ids.slice(0, 5).map(id => {
+                        const worker = workers.find(w => w.id === id);
+                        return worker ? (
+                          <span
+                            key={id}
+                            className="inline-flex items-center px-2 py-1 text-xs bg-aim-accent/20 text-aim-accent rounded-full"
+                          >
+                            {worker.full_name}
+                            <button
+                              type="button"
+                              onClick={() => setFormData({
+                                ...formData,
+                                target_worker_ids: formData.target_worker_ids.filter(wid => wid !== id),
+                              })}
+                              className="ml-1 hover:text-red-400"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                      {formData.target_worker_ids.length > 5 && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs bg-gray-500/20 text-gray-400 rounded-full">
+                          +{formData.target_worker_ids.length - 5} altri
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-aim-text-primary mb-1">
                   Data di Scadenza
                 </label>
                 <input
@@ -539,10 +780,10 @@ export default function AnnouncementsManagement() {
                   value={formData.expires_at}
                   onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-aim-text-secondary mt-1">
                   L'annuncio scadrà alla fine del giorno selezionato (23:59:59)
                 </p>
               </div>
@@ -555,14 +796,14 @@ export default function AnnouncementsManagement() {
                     resetForm();
                   }}
                   disabled={uploading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-aim-card-secondary border border-aim-border text-aim-text-primary rounded-lg hover:bg-aim-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-aim-accent text-white dark:text-black px-4 py-2 rounded-lg hover:bg-aim-accent-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? 'Caricamento in corso...' : 'Pubblica'}
                 </button>
