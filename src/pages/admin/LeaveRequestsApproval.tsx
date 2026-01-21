@@ -258,10 +258,10 @@ export default function LeaveRequestsApproval() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestione Richieste Permessi</h1>
-        <p className="text-gray-600 mt-1">Approva, rifiuta o fai controproposte alle richieste di ferie, ROL, malattia e appuntamenti</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Gestione Richieste Permessi</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Approva, rifiuta o fai controproposte alle richieste di ferie, ROL, malattia e appuntamenti</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-4">
@@ -319,10 +319,10 @@ export default function LeaveRequestsApproval() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {requests.length === 0 ? (
-          <div className="col-span-2 text-center py-12 bg-white rounded-xl shadow-md">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <div className="col-span-2 text-center py-8 sm:py-12 bg-white rounded-xl shadow-md">
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">Nessuna richiesta trovata</p>
           </div>
         ) : (
@@ -561,8 +561,8 @@ export default function LeaveRequestsApproval() {
       {/* Modal Controproposta (Admin) */}
       {showCounterModal && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Controproposta</h2>
+          <div className="bg-white rounded-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Controproposta</h2>
             <p className="text-gray-600 mb-4">
               Proponi una nuova data e ora per l'appuntamento di <strong>{selectedRequest.worker.full_name}</strong>
             </p>
