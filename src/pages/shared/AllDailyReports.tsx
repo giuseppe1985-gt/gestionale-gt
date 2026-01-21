@@ -196,10 +196,10 @@ export default function AllDailyReports() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Tutti i Rapportini</h1>
-        <p className="text-gray-600 mt-1">Visualizza e gestisci tutti i rapportini giornalieri</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Tutti i Rapportini</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Visualizza e gestisci tutti i rapportini giornalieri</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
@@ -307,7 +307,7 @@ export default function AllDailyReports() {
                   <span className="text-gray-600">
                     Totale ore cantiere <span className="text-blue-600 font-medium">{getSelectedWorksiteName()}</span>:
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-xl sm:text-2xl font-bold text-blue-600">
                     {getTotalHoursForWorksite().toFixed(1)} ore
                   </span>
                 </div>
@@ -317,7 +317,7 @@ export default function AllDailyReports() {
                   <span className="text-gray-600">
                     Totale ore lavoratore <span className="text-blue-600 font-medium">{getSelectedWorkerName()}</span>:
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-xl sm:text-2xl font-bold text-blue-600">
                     {getTotalHoursForWorker().toFixed(1)} ore
                   </span>
                 </div>
@@ -331,10 +331,10 @@ export default function AllDailyReports() {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-3 sm:gap-6">
         {filteredReports.length === 0 ? (
           <div className="bg-white rounded-xl shadow-md p-12 text-center">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Nessun rapportino trovato</h3>
             <p className="text-gray-600">
               {searchTerm || dateFrom || dateTo || worksiteFilter || workerFilter
