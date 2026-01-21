@@ -88,9 +88,9 @@ export default function WorkerDashboard() {
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('it-IT', {
-      weekday: 'long',
+      weekday: 'short',
       day: 'numeric',
-      month: 'long',
+      month: 'short',
     });
   };
 
@@ -119,73 +119,73 @@ export default function WorkerDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Benvenuto nel tuo portale lavoratore</p>
+        <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Benvenuto nel tuo portale lavoratore</p>
       </div>
 
       {todayAssignment ? (
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center space-x-2 mb-4">
-            <Calendar className="w-6 h-6" />
-            <h2 className="text-xl font-semibold">Assegnazione di Oggi</h2>
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+          <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+            <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h2 className="text-lg sm:text-xl font-semibold">Assegnazione di Oggi</h2>
           </div>
           <div className="space-y-3">
             <div>
-              <p className="text-blue-200 text-sm">Cantiere</p>
-              <p className="text-2xl font-bold">{todayAssignment.worksite.name}</p>
+              <p className="text-blue-200 text-xs sm:text-sm">Cantiere</p>
+              <p className="text-xl sm:text-xl sm:text-2xl font-bold">{todayAssignment.worksite.name}</p>
             </div>
             <div className="flex items-start space-x-2">
-              <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-blue-200 text-sm">Indirizzo</p>
-                <p className="text-lg">{todayAssignment.worksite.address}</p>
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-blue-200 text-xs sm:text-sm">Indirizzo</p>
+                <p className="text-sm sm:text-lg">{todayAssignment.worksite.address}</p>
               </div>
             </div>
             {todayAssignment.start_time && (
               <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5" />
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                 <div>
-                  <p className="text-blue-200 text-sm">Orario di Inizio</p>
-                  <p className="text-lg font-medium">{formatTime(todayAssignment.start_time)}</p>
+                  <p className="text-blue-200 text-xs sm:text-sm">Orario di Inizio</p>
+                  <p className="text-base sm:text-lg font-medium">{formatTime(todayAssignment.start_time)}</p>
                 </div>
               </div>
             )}
             {todayAssignment.vehicle && (
-              <div className="flex items-center space-x-2 bg-blue-700 bg-opacity-50 rounded-lg p-3">
-                <Truck className="w-6 h-6" />
-                <div>
-                  <p className="text-blue-200 text-sm">Furgone Assegnato</p>
-                  <p className="text-2xl font-bold">{todayAssignment.vehicle.plate}</p>
+              <div className="flex items-center space-x-2 bg-blue-700 bg-opacity-50 rounded-lg p-2 sm:p-3">
+                <Truck className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-blue-200 text-xs sm:text-sm">Furgone Assegnato</p>
+                  <p className="text-xl sm:text-xl sm:text-2xl font-bold">{todayAssignment.vehicle.plate}</p>
                   {todayAssignment.vehicle.details && (
-                    <p className="text-blue-100 text-sm">{todayAssignment.vehicle.details}</p>
+                    <p className="text-blue-100 text-xs sm:text-sm truncate">{todayAssignment.vehicle.details}</p>
                   )}
                 </div>
               </div>
             )}
             {todayAssignment.instructions && (
-              <div className="mt-4 bg-blue-700 bg-opacity-50 rounded-lg p-4">
-                <p className="text-blue-200 text-sm mb-1">Istruzioni</p>
-                <p className="text-white">{todayAssignment.instructions}</p>
+              <div className="mt-3 sm:mt-4 bg-blue-700 bg-opacity-50 rounded-lg p-3 sm:p-4">
+                <p className="text-blue-200 text-xs sm:text-sm mb-1">Istruzioni</p>
+                <p className="text-white text-sm sm:text-base">{todayAssignment.instructions}</p>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="bg-gray-100 rounded-xl p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600">Nessuna assegnazione per oggi</p>
+        <div className="bg-gray-100 rounded-xl p-4 sm:p-6 text-center">
+          <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2 sm:mb-3" />
+          <p className="text-gray-600 text-sm sm:text-base">Nessuna assegnazione per oggi</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center space-x-2 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-3 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+          <div className="flex items-center space-x-2 mb-3 sm:mb-4">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Prossime Assegnazioni</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Prossime Assegnazioni</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {upcomingAssignments.length === 0 ? (
               <p className="text-gray-500 text-sm py-4 text-center">
                 Nessuna assegnazione nei prossimi 7 giorni
@@ -194,33 +194,33 @@ export default function WorkerDashboard() {
               upcomingAssignments.map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                  className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium text-gray-900">{assignment.worksite.name}</p>
-                    <div className="flex flex-col items-end space-y-1">
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{assignment.worksite.name}</p>
+                    <div className="flex flex-col items-end space-y-1 flex-shrink-0">
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded whitespace-nowrap">
                         {formatDate(assignment.assigned_date)}
                       </span>
                       {assignment.confirmed ? (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
                           Confermata
                         </span>
                       ) : (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
                           Da Confermare
                         </span>
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">{assignment.worksite.address}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 truncate">{assignment.worksite.address}</p>
                   {assignment.start_time && (
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1.5 sm:mt-2">
                       Inizio: {formatTime(assignment.start_time)}
                     </p>
                   )}
                   {assignment.vehicle && (
-                    <div className="mt-2 flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="mt-1.5 sm:mt-2 flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
                       <Truck className="w-4 h-4" />
                       <span>{assignment.vehicle.plate}</span>
                     </div>
@@ -231,30 +231,30 @@ export default function WorkerDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center space-x-2 mb-4">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+          <div className="flex items-center space-x-2 mb-3 sm:mb-4">
             <MessageSquare className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Annunci Recenti</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Annunci Recenti</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {recentAnnouncements.length === 0 ? (
               <p className="text-gray-500 text-sm py-4 text-center">Nessun annuncio</p>
             ) : (
               recentAnnouncements.map((announcement) => (
                 <div
                   key={announcement.id}
-                  className={`border rounded-lg p-4 ${getPriorityColor(announcement.priority)}`}
+                  className={`border rounded-lg p-3 sm:p-4 ${getPriorityColor(announcement.priority)}`}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium">{announcement.title}</p>
+                  <div className="flex justify-between items-start mb-1.5 sm:mb-2 gap-2">
+                    <p className="font-medium text-sm sm:text-base">{announcement.title}</p>
                     {announcement.priority === 'urgent' && (
-                      <span className="text-xs bg-red-200 text-red-900 px-2 py-0.5 rounded font-medium">
+                      <span className="text-xs bg-red-200 text-red-900 px-2 py-0.5 rounded font-medium flex-shrink-0">
                         URGENTE
                       </span>
                     )}
                   </div>
-                  <p className="text-sm line-clamp-2">{announcement.message}</p>
-                  <p className="text-xs mt-2 opacity-75">
+                  <p className="text-xs sm:text-sm line-clamp-2">{announcement.message}</p>
+                  <p className="text-xs mt-1.5 sm:mt-2 opacity-75">
                     {new Date(announcement.created_at).toLocaleDateString('it-IT')}
                   </p>
                 </div>
