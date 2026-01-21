@@ -382,17 +382,17 @@ export default function LeaveRequests() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Richieste Permessi</h1>
-          <p className="text-gray-600 mt-1">Gestisci le tue richieste di ferie, ROL e appuntamenti</p>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci le tue richieste di ferie, ROL e appuntamenti</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
+          className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Nuova Richiesta</span>
@@ -496,27 +496,28 @@ export default function LeaveRequests() {
                     </div>
 
                     {/* Bottoni azione per controproposta ricevuta */}
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex flex-wrap gap-2 mt-4">
                       <button
                         onClick={() => handleAcceptCounterProposal(request)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-green-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Accetta
+                        <span>Accetta</span>
                       </button>
                       <button
                         onClick={() => openCounterProposalModal(request)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-orange-500 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm sm:text-base"
                       >
                         <RefreshCw className="w-4 h-4" />
-                        Controproposta
+                        <span className="hidden sm:inline">Controproposta</span>
+                        <span className="sm:hidden">Proposta</span>
                       </button>
                       <button
                         onClick={() => handleRejectCounterProposal(request)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-red-100 text-red-700 px-2 sm:px-4 py-2 rounded-lg hover:bg-red-200 transition-colors text-sm sm:text-base"
                       >
                         <XCircle className="w-4 h-4" />
-                        Rifiuta
+                        <span>Rifiuta</span>
                       </button>
                     </div>
                   </div>
