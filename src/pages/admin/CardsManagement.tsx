@@ -468,11 +468,11 @@ export default function CardsManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestione Carte e Telepass</h1>
-          <p className="text-gray-600 mt-1">Monitora le spese delle carte aziendali</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Gestione Carte e Telepass</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Monitora le spese delle carte aziendali</p>
         </div>
         <button
           onClick={() => {
@@ -480,15 +480,15 @@ export default function CardsManagement() {
             setCardForm({ name: '', type: 'card', info: '' });
             setShowCardModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
         >
           <Plus className="w-5 h-5" />
           <span>Aggiungi Carta</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <button
             onClick={previousMonth}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -496,7 +496,7 @@ export default function CardsManagement() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               {getMonthName(selectedMonth)} {selectedYear}
             </h2>
             <p className="text-sm text-gray-600 mt-1">Seleziona mese per visualizzare i totali</p>
@@ -509,14 +509,14 @@ export default function CardsManagement() {
           </button>
         </div>
 
-        <div className="bg-white border-l-4 border-l-emerald-500 border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border-l-4 border-l-emerald-500 border border-gray-200 rounded-lg p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-3">
               <div>
                 <p className="text-emerald-600 text-sm font-medium">Totale Spese Mensili (IVA inclusa)</p>
                 <p className="text-4xl font-bold mt-1 text-emerald-600">{grandTotal.toFixed(2)} €</p>
               </div>
-              <div className="flex gap-6 pt-2 border-t border-gray-200">
+              <div className="flex gap-3 sm:gap-6 pt-2 border-t border-gray-200">
                 <div>
                   <p className="text-gray-500 text-xs">Imponibile</p>
                   <p className="text-lg font-semibold text-gray-900">{grandTotalTaxable.toFixed(2)} €</p>
@@ -527,19 +527,19 @@ export default function CardsManagement() {
                 </div>
               </div>
             </div>
-            <DollarSign className="w-16 h-16 text-emerald-500/30" />
+            <DollarSign className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-500/30" />
           </div>
         </div>
       </div>
 
       {cards.length === 0 ? (
         <div className="bg-white rounded-xl shadow-md p-12 text-center">
-          <CreditCard className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <CreditCard className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500 text-lg">Nessuna carta o telepass registrato</p>
           <p className="text-gray-400 text-sm mt-2">Aggiungi la prima carta per iniziare</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
           {cards.map((card) => {
             const Icon = getCardTypeIcon(card.type);
             return (
@@ -573,7 +573,7 @@ export default function CardsManagement() {
                   </div>
                   <div className="mt-6">
                     <p className="text-blue-100 text-sm">Totale Mensile (IVA inclusa)</p>
-                    <p className="text-3xl font-bold mt-1">{card.monthlyTotal?.toFixed(2)} €</p>
+                    <p className="text-xl sm:text-3xl font-bold mt-1">{card.monthlyTotal?.toFixed(2)} €</p>
                     <div className="flex gap-4 mt-2 text-blue-200 text-xs">
                       <span>Imponibile: {card.monthlyTaxable?.toFixed(2)} €</span>
                       <span>IVA 22%: {card.monthlyVat?.toFixed(2)} €</span>
@@ -658,8 +658,8 @@ export default function CardsManagement() {
 
       {showCardModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
               {editingCard ? 'Modifica Carta' : 'Aggiungi Carta'}
             </h2>
             <form onSubmit={handleAddCard} className="space-y-4">
@@ -722,8 +722,8 @@ export default function CardsManagement() {
 
       {showTransactionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
               {editingTransaction ? 'Modifica Transazione' : 'Aggiungi Transazione'}
             </h2>
             <form onSubmit={handleAddTransaction} className="space-y-4">
