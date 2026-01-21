@@ -72,19 +72,19 @@ export default function Register({ onBackToLogin, onRegisterSuccess }: RegisterP
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
           <div className="flex flex-col items-center text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-lg">
               <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">Verifica la Tua Email</h1>
-            <p className="text-gray-600 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Verifica la Tua Email</h1>
+            <p className="text-gray-600 mb-4 sm:mb-6">
               Abbiamo inviato un'email di conferma a:
             </p>
-            <p className="text-blue-600 font-semibold mb-6">{registeredEmail}</p>
+            <p className="text-blue-600 font-semibold mb-4 sm:mb-6">{registeredEmail}</p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6 text-left">
               <p className="text-sm text-gray-700 mb-2">
                 <strong>Prossimi passi:</strong>
               </p>
@@ -95,7 +95,7 @@ export default function Register({ onBackToLogin, onRegisterSuccess }: RegisterP
               </ol>
             </div>
 
-            <p className="text-xs text-gray-500 mb-6">
+            <p className="text-xs text-gray-500 mb-4 sm:mb-6">
               Non hai ricevuto l'email? Controlla la cartella spam o richiedi un nuovo invio.
             </p>
 
@@ -116,7 +116,7 @@ export default function Register({ onBackToLogin, onRegisterSuccess }: RegisterP
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <button
           onClick={onBackToLogin}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 sm:mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Torna al login</span>
@@ -126,7 +126,7 @@ export default function Register({ onBackToLogin, onRegisterSuccess }: RegisterP
           <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-lg p-2">
             <img src="/logo.jpg" alt="GT Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Registra la Tua Azienda</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Registra la Tua Azienda</h1>
           <p className="text-gray-600 text-sm mt-1">Inizia a gestire i tuoi cantieri</p>
         </div>
 
