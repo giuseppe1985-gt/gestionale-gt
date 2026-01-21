@@ -120,10 +120,10 @@ export default function CompanyRegulationsView() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{regulation.title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{regulation.title}</h1>
             <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
