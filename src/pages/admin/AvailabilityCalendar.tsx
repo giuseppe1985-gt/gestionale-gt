@@ -243,15 +243,15 @@ export default function AvailabilityCalendar() {
   const monthName = currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Calendario Disponibilità</h1>
-        <p className="text-gray-600 mt-1">Visualizza lo stato di disponibilità del personale</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Calendario Disponibilità</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Visualizza lo stato di disponibilità del personale</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-xl font-bold text-gray-900 capitalize">{monthName}</h2>
             <div className="flex space-x-2">
               <button
@@ -315,7 +315,7 @@ export default function AvailabilityCalendar() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="mb-4">
             <h2 className="text-xl font-bold text-gray-900">
               {selectedDate.toDateString() === new Date().toDateString()
