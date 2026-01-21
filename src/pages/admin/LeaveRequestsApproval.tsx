@@ -421,30 +421,31 @@ export default function LeaveRequestsApproval() {
                     </div>
 
                     {/* Bottoni azione per controproposta ricevuta */}
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex flex-wrap gap-2 mt-4">
                       <button
                         onClick={() => handleAcceptCounterProposal(request)}
                         disabled={processing === request.id}
-                        className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-green-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 text-sm sm:text-base"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Accetta
+                        <span>Accetta</span>
                       </button>
                       <button
                         onClick={() => openCounterProposalModal(request)}
                         disabled={processing === request.id}
-                        className="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-orange-500 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 text-sm sm:text-base"
                       >
                         <RefreshCw className="w-4 h-4" />
-                        Controproposta
+                        <span className="hidden sm:inline">Controproposta</span>
+                        <span className="sm:hidden">Proposta</span>
                       </button>
                       <button
                         onClick={() => handleRejectCounterProposal(request)}
                         disabled={processing === request.id}
-                        className="flex-1 flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                        className="flex-1 min-w-[80px] flex items-center justify-center gap-1 sm:gap-2 bg-red-100 text-red-700 px-2 sm:px-4 py-2 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 text-sm sm:text-base"
                       >
                         <XCircle className="w-4 h-4" />
-                        Rifiuta
+                        <span>Rifiuta</span>
                       </button>
                     </div>
                   </div>
