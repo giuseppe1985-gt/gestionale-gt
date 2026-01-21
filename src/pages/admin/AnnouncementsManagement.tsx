@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { MessageSquare, Plus, Trash2, AlertCircle, Info, Bell, FileText, Download, Upload, User, Users, Check } from 'lucide-react';
 import { Database } from '../../lib/database.types';
 import { notifyNewAnnouncement } from '../../lib/notifications';
-import LoadingDots from '../../components/LoadingDots';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'] & {
   worksite?: { name: string } | null;
@@ -354,9 +353,9 @@ export default function AnnouncementsManagement() {
       case 'urgent':
         return 'bg-red-900/30 border-red-500/50 text-red-400';
       case 'important':
-        return 'bg-aim-card border-[#4DD0E1] text-[#4DD0E1]';
+        return 'bg-white border-blue-400 text-blue-500';
       default:
-        return 'bg-aim-card border-aim-border text-aim-text-primary';
+        return 'bg-white border-gray-300 text-gray-900';
     }
   };
 
@@ -401,7 +400,7 @@ export default function AnnouncementsManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingDots />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -410,8 +409,8 @@ export default function AnnouncementsManagement() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-aim-text-primary">Gestione Annunci</h1>
-          <p className="text-aim-text-secondary mt-1 text-sm sm:text-base">Crea e gestisci le comunicazioni per i lavoratori</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Gestione Annunci</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Crea e gestisci le comunicazioni per i lavoratori</p>
         </div>
         {/* Operai non possono creare annunci */}
         {canCreateAnnouncements && (
@@ -422,7 +421,7 @@ export default function AnnouncementsManagement() {
               setShowModal(true);
             }}
             disabled={!canPerformActions}
-            className={`flex items-center justify-center space-x-2 bg-aim-accent text-white dark:text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all w-full sm:w-auto ${!canPerformActions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-aim-accent-hover'}`}
+            className={`flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all w-full sm:w-auto ${!canPerformActions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gradient-to-r from-blue-900 to-blue-700-hover'}`}
           >
             <Plus className="w-5 h-5" />
             <span>Nuovo Annuncio</span>
@@ -432,9 +431,9 @@ export default function AnnouncementsManagement() {
 
       <div className="space-y-4">
         {announcements.length === 0 ? (
-          <div className="text-center py-12 bg-aim-card rounded-xl">
-            <MessageSquare className="w-16 h-16 text-aim-text-muted mx-auto mb-4" />
-            <p className="text-aim-text-secondary">Nessun annuncio pubblicato</p>
+          <div className="text-center py-12 bg-white rounded-xl">
+            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">Nessun annuncio pubblicato</p>
           </div>
         ) : (
           announcements.map((announcement) => (
@@ -447,8 +446,8 @@ export default function AnnouncementsManagement() {
                   {getPriorityIcon(announcement.priority)}
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-xl font-semibold">{announcement.title}</h3>
-                      <span className="text-xs px-2 py-1 bg-aim-card-secondary rounded">
+                      <h3 className="text-lg sm:text-xl font-semibold">{announcement.title}</h3>
+                      <span className="text-xs px-2 py-1 bg-gray-100 rounded">
                         {getPriorityLabel(announcement.priority)}
                       </span>
                     </div>
@@ -478,7 +477,7 @@ export default function AnnouncementsManagement() {
                 {(profile?.role === 'admin' || announcement.created_by === user?.id) && (
                   <button
                     onClick={() => handleDelete(announcement.id)}
-                    className="p-2 hover:bg-aim-card-secondary rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     disabled={!canPerformActions}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -492,7 +491,7 @@ export default function AnnouncementsManagement() {
                 <div className="mb-4">
                   <button
                     onClick={() => handleDownloadAttachment(announcement.attachment_url!, announcement.attachment_name!)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-aim-card-secondary rounded-lg hover:bg-aim-border transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     <FileText className="w-4 h-4" />
                     <span className="text-sm font-medium">{announcement.attachment_name}</span>
@@ -502,7 +501,7 @@ export default function AnnouncementsManagement() {
               )}
 
               <div className="flex items-center space-x-4 text-sm">
-                <span className="px-3 py-1 bg-aim-card-secondary rounded">
+                <span className="px-3 py-1 bg-gray-100 rounded">
                   {getTargetLabel(announcement)}
                 </span>
               </div>
@@ -513,31 +512,31 @@ export default function AnnouncementsManagement() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-aim-card rounded-xl max-w-2xl w-full p-6 max-h-screen overflow-y-auto">
-            <h2 className="text-2xl font-bold text-aim-text-primary mb-6">Nuovo Annuncio</h2>
+          <div className="bg-white rounded-xl max-w-lg sm:max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuovo Annuncio</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Titolo *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   placeholder="Oggetto dell'annuncio"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Messaggio *
                 </label>
                 <textarea
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={5}
                   required
                   placeholder="Scrivi il messaggio dell'annuncio..."
@@ -545,14 +544,14 @@ export default function AnnouncementsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Allegato (Opzionale)
                 </label>
                 <div className="flex items-center space-x-3">
                   <label className="flex-1 cursor-pointer">
-                    <div className="flex items-center justify-center space-x-2 px-4 py-2 border-2 border-dashed border-aim-border rounded-lg hover:border-[#4DD0E1] transition-colors">
-                      <Upload className="w-5 h-5 text-aim-text-secondary" />
-                      <span className="text-sm text-aim-text-secondary">
+                    <div className="flex items-center justify-center space-x-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors">
+                      <Upload className="w-5 h-5 text-gray-600" />
+                      <span className="text-sm text-gray-600">
                         {selectedFile ? selectedFile.name : 'Carica PDF o altro file'}
                       </span>
                     </div>
@@ -573,13 +572,13 @@ export default function AnnouncementsManagement() {
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-aim-text-secondary mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Formati supportati: PDF, DOC, DOCX, TXT (max 10MB)
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Priorità *
                 </label>
                 <select
@@ -590,7 +589,7 @@ export default function AnnouncementsManagement() {
                       priority: e.target.value as 'normal' | 'important' | 'urgent',
                     })
                   }
-                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                 >
                   <option value="normal">Normale</option>
@@ -600,7 +599,7 @@ export default function AnnouncementsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Destinatari *
                 </label>
                 <select
@@ -615,7 +614,7 @@ export default function AnnouncementsManagement() {
                     });
                     setShowWorkerDropdown(false);
                   }}
-                  className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                   style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                 >
                   <option value="all">Tutti i lavoratori</option>
@@ -627,7 +626,7 @@ export default function AnnouncementsManagement() {
 
               {formData.target_audience === 'specific' && (
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Cantiere *
                   </label>
                   <select
@@ -635,7 +634,7 @@ export default function AnnouncementsManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, target_worksite_id: e.target.value })
                     }
-                    className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -651,7 +650,7 @@ export default function AnnouncementsManagement() {
 
               {formData.target_audience === 'worker' && (
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Lavoratore *
                   </label>
                   <select
@@ -659,7 +658,7 @@ export default function AnnouncementsManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, target_worker_id: e.target.value })
                     }
-                    className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -675,14 +674,14 @@ export default function AnnouncementsManagement() {
 
               {formData.target_audience === 'workers' && (
                 <div>
-                  <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
                     Lavoratori * ({formData.target_worker_ids.length} selezionati)
                   </label>
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setShowWorkerDropdown(!showWorkerDropdown)}
-                      className="w-full px-4 py-2 pr-10 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent text-left bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                       style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     >
                       {formData.target_worker_ids.length === 0
@@ -691,8 +690,8 @@ export default function AnnouncementsManagement() {
                     </button>
                     
                     {showWorkerDropdown && (
-                      <div className="absolute z-50 w-full mt-1 bg-aim-card border border-aim-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        <div className="p-2 border-b border-aim-border">
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div className="p-2 border-b border-gray-300">
                           <button
                             type="button"
                             onClick={() => {
@@ -702,7 +701,7 @@ export default function AnnouncementsManagement() {
                                 setFormData({ ...formData, target_worker_ids: workers.map(w => w.id) });
                               }
                             }}
-                            className="text-sm text-aim-accent hover:underline"
+                            className="text-sm text-blue-600 hover:underline"
                           >
                             {formData.target_worker_ids.length === workers.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
                           </button>
@@ -710,7 +709,7 @@ export default function AnnouncementsManagement() {
                         {workers.map((worker) => (
                           <label
                             key={worker.id}
-                            className="flex items-center px-4 py-2 hover:bg-aim-card-secondary cursor-pointer"
+                            className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -728,9 +727,9 @@ export default function AnnouncementsManagement() {
                                   });
                                 }
                               }}
-                              className="w-4 h-4 text-aim-accent border-aim-border rounded focus:ring-aim-accent"
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
-                            <span className="ml-3 text-sm text-aim-text-primary">
+                            <span className="ml-3 text-sm text-gray-900">
                               {worker.full_name} {worker.position ? `(${worker.position})` : ''}
                             </span>
                           </label>
@@ -745,7 +744,7 @@ export default function AnnouncementsManagement() {
                         return worker ? (
                           <span
                             key={id}
-                            className="inline-flex items-center px-2 py-1 text-xs bg-aim-accent/20 text-aim-accent rounded-full"
+                            className="inline-flex items-center px-2 py-1 text-xs bg-gradient-to-r from-blue-900 to-blue-700/20 text-blue-600 rounded-full"
                           >
                             {worker.full_name}
                             <button
@@ -772,7 +771,7 @@ export default function AnnouncementsManagement() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-aim-text-primary mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Data di Scadenza
                 </label>
                 <input
@@ -780,10 +779,10 @@ export default function AnnouncementsManagement() {
                   value={formData.expires_at}
                   onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-aim-border rounded-lg focus:ring-2 focus:ring-aim-accent focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
-                <p className="text-xs text-aim-text-secondary mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   L'annuncio scadrà alla fine del giorno selezionato (23:59:59)
                 </p>
               </div>
@@ -796,14 +795,14 @@ export default function AnnouncementsManagement() {
                     resetForm();
                   }}
                   disabled={uploading}
-                  className="flex-1 px-4 py-2 bg-aim-card-secondary border border-aim-border text-aim-text-primary rounded-lg hover:bg-aim-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 bg-aim-accent text-white dark:text-black px-4 py-2 rounded-lg hover:bg-aim-accent-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:bg-gradient-to-r from-blue-900 to-blue-700-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? 'Caricamento in corso...' : 'Pubblica'}
                 </button>
