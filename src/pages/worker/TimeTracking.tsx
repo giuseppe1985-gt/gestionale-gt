@@ -113,11 +113,11 @@ export default function TimeTracking() {
       icon: Play,
       color: 'from-green-600 to-green-700',
       hoverColor: 'hover:from-green-500 hover:to-green-600',
-      description: 'Inizia la giornata lavorativa',
+      description: 'Inizia la giornata',
     },
     {
       type: 'lunch_start',
-      label: 'Inizio Pausa Pranzo',
+      label: 'Inizio Pausa',
       icon: Coffee,
       color: 'from-orange-600 to-orange-700',
       hoverColor: 'hover:from-orange-500 hover:to-orange-600',
@@ -125,7 +125,7 @@ export default function TimeTracking() {
     },
     {
       type: 'lunch_end',
-      label: 'Fine Pausa Pranzo',
+      label: 'Fine Pausa',
       icon: Play,
       color: 'from-blue-600 to-blue-700',
       hoverColor: 'hover:from-blue-500 hover:to-blue-600',
@@ -133,11 +133,11 @@ export default function TimeTracking() {
     },
     {
       type: 'work_end',
-      label: 'Partenza da Cantiere',
+      label: 'Partenza',
       icon: StopCircle,
       color: 'from-red-600 to-red-700',
       hoverColor: 'hover:from-red-500 hover:to-red-600',
-      description: 'Termina la giornata lavorativa',
+      description: 'Fine giornata',
     },
   ];
 
@@ -210,24 +210,23 @@ export default function TimeTracking() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Timbratura</h1>
-        <p className="text-gray-600 mt-1">Seleziona l'azione da registrare</p>
+        <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900">Timbratura</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Seleziona l'azione da registrare</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="mb-6 text-center">
-          <Clock className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+        <div className="mb-4 sm:mb-4 sm:mb-6 text-center">
+          <Clock className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-400 mb-2 sm:mb-3" />
+          <h2 className="text-sm sm:text-lg font-semibold text-gray-900 mb-1">
             {currentTime.toLocaleDateString('it-IT', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
-              year: 'numeric',
             })}
           </h2>
-          <p className="text-3xl font-bold text-blue-600">
+          <p className="text-2xl sm:text-xl sm:text-3xl font-bold text-blue-600">
             {currentTime.toLocaleTimeString('it-IT', {
               hour: '2-digit',
               minute: '2-digit',
@@ -237,13 +236,14 @@ export default function TimeTracking() {
         </div>
 
         {todayEntries.length > 0 && calculateTotalHours() && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg text-center">
-            <p className="text-sm text-gray-600 mb-1">Ore Lavorate Oggi</p>
-            <p className="text-2xl font-bold text-blue-900">{calculateTotalHours()}</p>
+          <div className="mb-4 sm:mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg text-center">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">Ore Lavorate Oggi</p>
+            <p className="text-xl sm:text-xl sm:text-2xl font-bold text-blue-900">{calculateTotalHours()}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Grid ottimizzato per mobile - 2x2 */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {timeActions.map((action) => {
             const isCompleted = getEntryStatus(action.type);
             const canClick = canClockEntry(action.type);
@@ -254,32 +254,32 @@ export default function TimeTracking() {
                 key={action.type}
                 onClick={() => canClick && handleClockEntry(action.type)}
                 disabled={!canClick}
-                className={`relative p-6 rounded-xl border-2 transition-all ${
+                className={`relative p-3 sm:p-6 rounded-xl border-2 transition-all ${
                   isCompleted
                     ? 'bg-gray-50 border-gray-300 cursor-not-allowed'
                     : canClick
-                    ? `bg-gradient-to-r ${action.color} ${action.hoverColor} border-transparent text-white shadow-lg transform hover:scale-105`
+                    ? `bg-gradient-to-r ${action.color} ${action.hoverColor} border-transparent text-white shadow-lg active:scale-95 sm:hover:scale-105`
                     : 'bg-gray-100 border-gray-200 cursor-not-allowed opacity-50'
                 }`}
               >
                 {isCompleted && (
-                  <div className="absolute top-3 right-3 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                 )}
 
                 <div className="flex flex-col items-center text-center">
-                  <ActionIcon className={`w-10 h-10 mb-3 ${isCompleted ? 'text-gray-400' : canClick ? 'text-white' : 'text-gray-400'}`} />
-                  <h3 className={`text-lg font-bold mb-1 ${isCompleted ? 'text-gray-500' : canClick ? 'text-white' : 'text-gray-400'}`}>
+                  <ActionIcon className={`w-8 h-8 sm:w-10 sm:h-10 mb-2 sm:mb-3 ${isCompleted ? 'text-gray-400' : canClick ? 'text-white' : 'text-gray-400'}`} />
+                  <h3 className={`text-sm sm:text-lg font-bold mb-0.5 sm:mb-1 ${isCompleted ? 'text-gray-500' : canClick ? 'text-white' : 'text-gray-400'}`}>
                     {action.label}
                   </h3>
-                  <p className={`text-sm ${isCompleted ? 'text-gray-400' : canClick ? 'text-white/80' : 'text-gray-400'}`}>
+                  <p className={`text-xs sm:text-sm hidden sm:block ${isCompleted ? 'text-gray-400' : canClick ? 'text-white/80' : 'text-gray-400'}`}>
                     {isCompleted ? 'Completato' : action.description}
                   </p>
                   {isCompleted && todayEntries.find(e => e.entry_type === action.type) && (
-                    <p className="text-sm font-semibold text-gray-600 mt-2">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-600 mt-1 sm:mt-2">
                       {formatTime(todayEntries.find(e => e.entry_type === action.type)!.timestamp)}
                     </p>
                   )}
@@ -290,36 +290,36 @@ export default function TimeTracking() {
         </div>
 
         {getEntryStatus('work_end') && (
-          <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200 text-center">
-            <p className="text-green-900 font-semibold">Giornata lavorativa completata</p>
+          <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-200 text-center">
+            <p className="text-green-900 font-semibold text-sm sm:text-base">Giornata lavorativa completata</p>
           </div>
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Timbrature di Oggi</h3>
-        <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Timbrature di Oggi</h3>
+        <div className="space-y-2 sm:space-y-3">
           {todayEntries.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">Nessuna timbratura registrata oggi</p>
+            <p className="text-gray-500 text-center py-4 text-sm sm:text-base">Nessuna timbratura registrata oggi</p>
           ) : (
             todayEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4 bg-gray-50 rounded-lg"
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-blue-600" />
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{getEntryTypeLabel(entry.entry_type)}</p>
-                    <p className="text-sm text-gray-600">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{getEntryTypeLabel(entry.entry_type)}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
                       {new Date(entry.timestamp).toLocaleDateString('it-IT')}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-gray-900">{formatTime(entry.timestamp)}</p>
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-base sm:text-lg font-semibold text-gray-900">{formatTime(entry.timestamp)}</p>
                 </div>
               </div>
             ))
