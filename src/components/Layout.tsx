@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Building2, Users, Calendar, MessageSquare, LayoutDashboard, Clock, Truck, FileText, CalendarCheck, CalendarClock, CreditCard, UserCheck, BookOpen, Receipt, Bell, ClipboardList, Archive, Camera, X } from 'lucide-react';
+import { LogOut, Building2, Users, Calendar, MessageSquare, LayoutDashboard, Clock, Truck, FileText, CalendarCheck, CalendarClock, CreditCard, UserCheck, BookOpen, Receipt, Bell, ClipboardList, Archive, Camera, X, Menu } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { supabase } from '../lib/supabase';
 
@@ -13,6 +13,7 @@ interface LayoutProps {
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const { profile, signOut, isAdmin, refreshProfile } = useAuth();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +92,11 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     } finally {
       setUploading(false);
     }
+  };
+
+  const handlePageChange = (page: string) => {
+    onPageChange(page);
+    setShowMobileMenu(false);
   };
 
   const adminMenuItems = [
@@ -190,37 +196,38 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
   };
 
   const menuItems = getMenuItems();
+  const currentMenuItem = menuItems.find(item => item.id === currentPage);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md p-1">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center shadow-md p-1 flex-shrink-0">
                 <img src="/logo.jpg" alt="GT Logo" className="w-full h-full object-contain" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold">Gestione Cantieri</h1>
-                <p className="text-xs text-blue-200">
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-bold truncate">Gestione Cantieri</h1>
+                <p className="text-[10px] sm:text-xs text-blue-200 truncate">
                   {profile?.role === 'admin' ? 'Pannello Amministratore' :
                    profile?.role === 'administrator' ? 'Portale Amministratore' :
-                   profile?.role === 'org_manager' ? 'Responsabile Organizzazione' :
-                   profile?.role === 'sales_manager' ? 'Responsabile Commerciale' :
+                   profile?.role === 'org_manager' ? 'Resp. Organizzazione' :
+                   profile?.role === 'sales_manager' ? 'Resp. Commerciale' :
                    'Portale Lavoratore'}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <NotificationBell />
-              <div className="text-right hidden sm:block">
+              <div className="text-right hidden md:block">
                 <p className="text-sm font-medium">{profile?.full_name}</p>
                 <p className="text-xs text-blue-200">{profile?.position || profile?.role}</p>
               </div>
               <button
                 onClick={() => setShowAvatarModal(true)}
-                className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400 hover:border-white transition-colors cursor-pointer"
+                className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-blue-400 hover:border-white transition-colors cursor-pointer flex-shrink-0"
                 title="Cambia foto profilo"
               >
                 {avatarUrl || profile?.avatar_url ? (
@@ -230,33 +237,73 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg">
                     {profile?.full_name?.charAt(0).toUpperCase() || '?'}
                   </div>
                 )}
               </button>
               <button
                 onClick={() => signOut()}
-                className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Esci</span>
+                <span className="hidden sm:inline text-sm">Esci</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
+      {/* Mobile Menu Button + Current Page Indicator */}
+      <div className="md:hidden bg-white border-b border-gray-200 shadow-sm">
+        <button
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          className="w-full flex items-center justify-between px-4 py-3"
+        >
+          <div className="flex items-center space-x-2">
+            {currentMenuItem && <currentMenuItem.icon className="w-5 h-5 text-blue-600" />}
+            <span className="font-medium text-gray-900">{currentMenuItem?.label || 'Menu'}</span>
+          </div>
+          <Menu className="w-5 h-5 text-gray-500" />
+        </button>
+        
+        {/* Mobile Dropdown Menu */}
+        {showMobileMenu && (
+          <div className="absolute left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-40 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-1 p-2">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handlePageChange(item.id)}
+                    className={`flex items-center space-x-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === item.id
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Navigation */}
+      <nav className="hidden md:block bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 overflow-x-auto">
+          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => onPageChange(item.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  className={`flex items-center space-x-2 px-3 lg:px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     currentPage === item.id
                       ? 'border-blue-600 text-blue-600'
                       : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -271,25 +318,33 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Overlay for mobile menu */}
+      {showMobileMenu && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-25 z-30 md:hidden"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {children}
       </main>
 
       {showAvatarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 sm:p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Foto Profilo</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Foto Profilo</h2>
               <button
                 onClick={() => setShowAvatarModal(false)}
-                className="p-1 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 rounded-full"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             
             <div className="flex flex-col items-center space-y-4">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-gray-200">
                 {avatarUrl || profile?.avatar_url ? (
                   <img 
                     src={avatarUrl || profile?.avatar_url || ''} 
@@ -297,7 +352,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-4xl">
+                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-3xl sm:text-4xl">
                     {profile?.full_name?.charAt(0).toUpperCase() || '?'}
                   </div>
                 )}
@@ -311,11 +366,11 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
                 className="hidden"
               />
               
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex items-center gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base"
                 >
                   <Camera className="w-4 h-4" />
                   {uploading ? 'Caricamento...' : 'Carica Foto'}
@@ -325,7 +380,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
                   <button
                     onClick={handleRemoveAvatar}
                     disabled={uploading}
-                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    className="flex items-center gap-2 bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm sm:text-base"
                   >
                     Rimuovi
                   </button>
