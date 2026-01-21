@@ -381,18 +381,18 @@ export default function LeaveRequests() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Richieste Permessi</h1>
-          <p className="text-gray-600 mt-1">Gestisci le tue richieste di ferie, ROL e appuntamenti</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Richieste Permessi</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci le tue richieste di ferie, ROL e appuntamenti</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
         >
           <Plus className="w-5 h-5" />
           <span>Nuova Richiesta</span>
@@ -406,7 +406,7 @@ export default function LeaveRequests() {
               <h3 className="text-lg font-semibold">Ferie</h3>
               <Calendar className="w-6 h-6 opacity-80" />
             </div>
-            <p className="text-3xl font-bold">{balance.vacation_hours}h</p>
+            <p className="text-xl sm:text-3xl font-bold">{balance.vacation_hours}h</p>
             <p className="text-sm opacity-80 mt-1">Ore disponibili</p>
           </div>
 
@@ -415,7 +415,7 @@ export default function LeaveRequests() {
               <h3 className="text-lg font-semibold">ROL</h3>
               <Clock className="w-6 h-6 opacity-80" />
             </div>
-            <p className="text-3xl font-bold">{balance.rol_hours}h</p>
+            <p className="text-xl sm:text-3xl font-bold">{balance.rol_hours}h</p>
             <p className="text-sm opacity-80 mt-1">Ore disponibili</p>
           </div>
         </div>
@@ -433,12 +433,12 @@ export default function LeaveRequests() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Le Mie Richieste</h2>
         <div className="space-y-4">
           {requests.length === 0 ? (
             <div className="text-center py-8">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">Nessuna richiesta effettuata</p>
             </div>
           ) : (
@@ -555,7 +555,7 @@ export default function LeaveRequests() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Richiesta</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuova Richiesta</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -788,9 +788,9 @@ export default function LeaveRequests() {
       {/* Modal Controproposta (Worker) */}
       {showCounterModal && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Nuova Controproposta</h2>
-            <p className="text-gray-600 mb-6">Proponi una nuova data e ora per l'appuntamento</p>
+          <div className="bg-white rounded-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Nuova Controproposta</h2>
+            <p className="text-gray-600 mb-4 sm:mb-6">Proponi una nuova data e ora per l'appuntamento</p>
 
             <form onSubmit={handleSubmitCounterProposal} className="space-y-4">
               <div>
