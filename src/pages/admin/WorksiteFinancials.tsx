@@ -571,7 +571,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
   }
   return (
     <div className="p-6">
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-4 sm:mb-6 flex items-center gap-4">
         <button
           onClick={onBack}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -579,12 +579,12 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dati Finanziari - {worksite?.name}</h1>
-          <p className="text-gray-600 mt-1">Gestisci importi, incassi, fatture e spese del cantiere</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dati Finanziari - {worksite?.name}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci importi, incassi, fatture e spese del cantiere</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 sm:mb-6">
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -651,7 +651,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
           <nav className="flex flex-wrap">
             <button
               onClick={() => setActiveTab('budget')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'budget'
                   ? 'border-orange-600 text-orange-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -661,7 +661,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('revenues')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'revenues'
                   ? 'border-green-600 text-green-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -671,7 +671,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('invoices')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'invoices'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -681,7 +681,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('expenses')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'expenses'
                   ? 'border-red-600 text-red-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -691,7 +691,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('liquid')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'liquid'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -705,7 +705,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
         <div className="p-6">
           {/* TAB IMPORTO CANTIERE */}
           {activeTab === 'budget' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <form onSubmit={handleAddBudget} className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
@@ -798,7 +798,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
 
           {/* TAB INCASSI */}
           {activeTab === 'revenues' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <form onSubmit={handleAddRevenue} className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
@@ -891,7 +891,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
 
           {/* TAB FATTURE EMESSE */}
           {activeTab === 'invoices' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <form onSubmit={handleAddInvoice} className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
@@ -1060,7 +1060,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
 
           {/* TAB FATTURE SPESE CANTIERE */}
           {activeTab === 'expenses' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <form onSubmit={handleAddExpenseInvoice} className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
@@ -1244,7 +1244,7 @@ export default function WorksiteFinancials({ worksiteId, onBack }: Props) {
 
           {/* TAB DISPONIBILITÀ LIQUIDE */}
           {activeTab === 'liquid' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <form onSubmit={handleAddLiquidAsset} className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Plus className="w-5 h-5" />
