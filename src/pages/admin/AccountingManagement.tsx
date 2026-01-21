@@ -821,10 +821,10 @@ const { error } = await supabase.from('invoice_calculations').insert({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Amministrazione Contabile</h1>
-        <p className="text-gray-600 mt-1">Gestione contabilità e pagamenti</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Amministrazione Contabile</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Gestione contabilità e pagamenti</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -938,7 +938,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
           <nav className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab('invoices')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'invoices'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -949,7 +949,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('purchases')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'purchases'
                   ? 'border-red-600 text-red-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -960,7 +960,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('schedule')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'schedule'
                   ? 'border-green-600 text-green-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -971,7 +971,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('riba')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'riba'
                   ? 'border-orange-600 text-orange-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -987,7 +987,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('advances')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'advances'
                   ? 'border-purple-600 text-purple-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -998,7 +998,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('cards')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'cards'
                   ? 'border-teal-600 text-teal-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -1009,7 +1009,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
             </button>
             <button
               onClick={() => setActiveTab('calculations')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'calculations'
                   ? 'border-emerald-600 text-emerald-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -1104,13 +1104,13 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-blue-800">Totale Fatture Emesse</p>
-                      <p className="text-2xl font-bold text-blue-700">
+                      <p className="text-xl sm:text-2xl font-bold text-blue-700">
                         {formatCurrency(filterByDate(issuedInvoices).reduce((sum, inv) => sum + parseFloat(inv.amount.toString()), 0))}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-blue-800">Totale IVA Vendite</p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-xl sm:text-2xl font-bold text-blue-600">
                         {formatCurrency(filterByDate(issuedInvoices).reduce((sum, inv) => sum + (inv.vat_amount || 0), 0))}
                       </p>
                     </div>
@@ -1418,13 +1418,13 @@ const { error } = await supabase.from('invoice_calculations').insert({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-red-800">Totale Fatture Acquisto</p>
-                      <p className="text-2xl font-bold text-red-700">
+                      <p className="text-xl sm:text-2xl font-bold text-red-700">
                         {formatCurrency(purchaseInvoices.reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0))}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-red-800">Totale IVA Detraibile</p>
-                      <p className="text-2xl font-bold text-red-600">
+                      <p className="text-xl sm:text-2xl font-bold text-red-600">
                         {formatCurrency(purchaseInvoices.reduce((sum, p) => sum + (p.vat_amount || 0), 0))}
                       </p>
                     </div>
@@ -1439,7 +1439,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
               <h2 className="text-lg font-semibold">Riepilogo Mensile Carte & Telepass</h2>
 
               {monthlySummary.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {Array.from(new Set(monthlySummary.map(s => s.month))).map((month) => {
                     const monthData = monthlySummary.filter(s => s.month === month);
                     const cards = monthData.filter(s => s.card_type === 'card');
@@ -1459,7 +1459,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
                               <CreditCard className="w-8 h-8 text-blue-600" />
                               <div>
                                 <p className="text-sm text-blue-600 font-medium">Totale Carte</p>
-                                <p className="text-2xl font-bold text-blue-900">{formatCurrency(totalCards)}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-blue-900">{formatCurrency(totalCards)}</p>
                                 <p className="text-xs text-blue-700 mt-1">{cards.length} carte attive</p>
                               </div>
                             </div>
@@ -1470,7 +1470,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
                               <DollarSign className="w-8 h-8 text-teal-600" />
                               <div>
                                 <p className="text-sm text-teal-600 font-medium">Totale Telepass</p>
-                                <p className="text-2xl font-bold text-teal-900">{formatCurrency(totalTelepasses)}</p>
+                                <p className="text-xl sm:text-2xl font-bold text-teal-900">{formatCurrency(totalTelepasses)}</p>
                                 <p className="text-xs text-teal-700 mt-1">{telepasses.length} telepass attivi</p>
                               </div>
                             </div>
@@ -1509,7 +1509,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
           )}
 
           {activeTab === 'calculations' && (
-  <div className="space-y-6">
+  <div className="space-y-4 sm:space-y-6">
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <h2 className="text-lg font-semibold">Calcolo Fatture</h2>
       <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
@@ -1543,9 +1543,9 @@ const { error } = await supabase.from('invoice_calculations').insert({
       </div>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
       {/* FATTURE INCASSO */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-green-900 mb-4">Fatture Incasso</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
           {filterByDate(invoiceCalculations)
@@ -1647,7 +1647,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       </div>
 
       {/* FATTURE SPESE */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-red-900 mb-4">Fatture Spese</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
           {filterByDate(invoiceCalculations)
@@ -1734,7 +1734,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       </div>
 
       {/* FATTURE SPESE CANTIERE */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-orange-900 mb-4">Fatture Spese Cantiere</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
           {worksiteExpenseInvoices
@@ -1786,7 +1786,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       </div>
 
       {/* PREVENTIVI */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-4">Preventivi</h3>
         <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
           {filterByDate(invoiceCalculations)
@@ -1970,7 +1970,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showInvoiceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Fattura Emessa</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuova Fattura Emessa</h2>
             <form onSubmit={handleAddInvoice} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2114,7 +2114,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showScheduleModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Scadenza</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuova Scadenza</h2>
             <form onSubmit={handleAddScheduleItem} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2225,7 +2225,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showRibaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuovo RiBa Fornitore</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuovo RiBa Fornitore</h2>
             <form onSubmit={handleAddRiba} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2336,7 +2336,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showAdvanceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuovo Anticipo Fattura</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuovo Anticipo Fattura</h2>
             <form onSubmit={handleAddAdvance} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2442,7 +2442,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showPurchaseModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuova Fattura Acquisto</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuova Fattura Acquisto</h2>
             <form onSubmit={handleAddPurchase} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2558,7 +2558,7 @@ const { error } = await supabase.from('invoice_calculations').insert({
       {showCalculationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuovo Elemento</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Nuovo Elemento</h2>
             <form onSubmit={handleAddCalculation} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
