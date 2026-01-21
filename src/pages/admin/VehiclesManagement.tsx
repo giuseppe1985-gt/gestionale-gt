@@ -1,647 +1,597 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import {
-  GraduationCap,
-  Stethoscope,
-  CreditCard,
-  Plus,
-  Trash2,
-  Edit2,
-  X,
-  AlertTriangle,
-  Calendar
-} from 'lucide-react';
-import { Database } from '../../lib/database.types';
+import { useAuth } from '../../contexts/AuthContext';
+import { Truck, Plus, X, Save, Trash2, AlertCircle, Calendar, Wrench, ClipboardList } from 'lucide-react';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type Course = Database['public']['Tables']['worker_courses']['Row'];
-type MedicalCheckup = Database['public']['Tables']['worker_medical_checkups']['Row'];
-
-interface WorkerDetailsProps {
-  worker: Profile;
-  onClose: () => void;
+interface Vehicle {
+  id: string;
+  organization_id: string;
+  plate: string;
+  details: string;
+  kilometers: number;
+  inspection_date: string | null;
+  issues: string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export default function WorkerDetails({ worker, onClose }: WorkerDetailsProps) {
-  const [activeTab, setActiveTab] = useState<'courses' | 'medical' | 'card'>('courses');
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [medicalCheckups, setMedicalCheckups] = useState<MedicalCheckup[]>([]);
+interface VehicleService {
+  id: string;
+  vehicle_id: string;
+  service_date: string;
+  kilometers: number;
+  notes: string | null;
+  created_at: string;
+}
+
+export default function VehiclesManagement() {
+  const { profile } = useAuth();
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [showCourseForm, setShowCourseForm] = useState(false);
-  const [showMedicalForm, setShowMedicalForm] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [editingMedical, setEditingMedical] = useState<MedicalCheckup | null>(null);
-
-  const [courseForm, setCourseForm] = useState({
-    course_name: '',
-    completion_date: '',
+  const [formData, setFormData] = useState({
+    plate: '',
+    details: '',
+    kilometers: 0,
+    inspection_date: '',
+    issues: '',
     notes: '',
   });
 
-  const [medicalForm, setMedicalForm] = useState({
-    checkup_date: '',
-    expiry_date: '',
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [vehicleServices, setVehicleServices] = useState<VehicleService[]>([]);
+  const [serviceFormData, setServiceFormData] = useState({
+    service_date: '',
+    kilometers: 0,
     notes: '',
-  });
-
-  const [paymentCard, setPaymentCard] = useState({
-    payment_card_number: worker.payment_card_number || '',
-    payment_card_assigned_date: worker.payment_card_assigned_date || '',
   });
 
   useEffect(() => {
-    loadData();
-  }, [worker.id]);
+    fetchVehicles();
+  }, []);
 
-  const loadData = async () => {
-    setLoading(true);
+  const fetchVehicles = async () => {
     try {
-      const [coursesRes, medicalRes] = await Promise.all([
-        supabase
-          .from('worker_courses')
-          .select('*')
-          .eq('worker_id', worker.id)
-          .order('completion_date', { ascending: false }),
-        supabase
-          .from('worker_medical_checkups')
-          .select('*')
-          .eq('worker_id', worker.id)
-          .order('expiry_date', { ascending: false }),
-      ]);
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .order('plate', { ascending: true });
 
-      setCourses(coursesRes.data || []);
-      setMedicalCheckups(medicalRes.data || []);
+      if (error) throw error;
+      setVehicles(data || []);
     } catch (error) {
-      console.error('Error loading worker details:', error);
+      console.error('Error fetching vehicles:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddCourse = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', worker.id)
-        .single();
-
-      if (editingCourse) {
-        await supabase
-          .from('worker_courses')
-          .update({
-            course_name: courseForm.course_name,
-            completion_date: courseForm.completion_date,
-            notes: courseForm.notes,
-          })
-          .eq('id', editingCourse.id);
-      } else {
-        await supabase.from('worker_courses').insert({
-          worker_id: worker.id,
-          course_name: courseForm.course_name,
-          completion_date: courseForm.completion_date,
-          notes: courseForm.notes,
-          organization_id: profile?.organization_id,
-        });
-      }
-
-      setCourseForm({ course_name: '', completion_date: '', notes: '' });
-      setShowCourseForm(false);
-      setEditingCourse(null);
-      loadData();
-    } catch (error) {
-      console.error('Error saving course:', error);
-      alert('Errore nel salvataggio del corso');
-    }
-  };
-
-  const handleDeleteCourse = async (id: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questo corso?')) return;
-    try {
-      await supabase.from('worker_courses').delete().eq('id', id);
-      loadData();
-    } catch (error) {
-      console.error('Error deleting course:', error);
-    }
-  };
-
-  const handleEditCourse = (course: Course) => {
-    setEditingCourse(course);
-    setCourseForm({
-      course_name: course.course_name,
-      completion_date: course.completion_date,
-      notes: course.notes || '',
-    });
-    setShowCourseForm(true);
-  };
-
-  const handleAddMedical = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', worker.id)
-        .single();
-
-      if (editingMedical) {
-        await supabase
-          .from('worker_medical_checkups')
-          .update({
-            checkup_date: medicalForm.checkup_date,
-            expiry_date: medicalForm.expiry_date,
-            notes: medicalForm.notes,
-          })
-          .eq('id', editingMedical.id);
-      } else {
-        await supabase.from('worker_medical_checkups').insert({
-          worker_id: worker.id,
-          checkup_date: medicalForm.checkup_date,
-          expiry_date: medicalForm.expiry_date,
-          notes: medicalForm.notes,
-          organization_id: profile?.organization_id,
-        });
-      }
-
-      setMedicalForm({ checkup_date: '', expiry_date: '', notes: '' });
-      setShowMedicalForm(false);
-      setEditingMedical(null);
-      loadData();
-    } catch (error) {
-      console.error('Error saving medical checkup:', error);
-      alert('Errore nel salvataggio della visita medica');
-    }
-  };
-
-  const handleDeleteMedical = async (id: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questa visita medica?')) return;
-    try {
-      await supabase.from('worker_medical_checkups').delete().eq('id', id);
-      loadData();
-    } catch (error) {
-      console.error('Error deleting medical checkup:', error);
-    }
-  };
-
-  const handleEditMedical = (medical: MedicalCheckup) => {
-    setEditingMedical(medical);
-    setMedicalForm({
-      checkup_date: medical.checkup_date,
-      expiry_date: medical.expiry_date,
-      notes: medical.notes || '',
-    });
-    setShowMedicalForm(true);
-  };
-
-  const handleSavePaymentCard = async () => {
+  const fetchVehicleServices = async (vehicleId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .update({
-          payment_card_number: paymentCard.payment_card_number || null,
-          payment_card_assigned_date: paymentCard.payment_card_assigned_date || null,
-        })
-        .eq('id', worker.id)
-        .select();
+        .from('vehicle_services')
+        .select('*')
+        .eq('vehicle_id', vehicleId)
+        .order('service_date', { ascending: false });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Carta aggiornata con successo:', data);
-      alert('Carta acquisti aggiornata con successo!');
+      if (error) throw error;
+      setVehicleServices(data || []);
     } catch (error) {
-      console.error('Error saving payment card:', error);
-      alert('Errore nel salvataggio della carta acquisti: ' + (error instanceof Error ? error.message : 'Errore sconosciuto'));
+      console.error('Error fetching vehicle services:', error);
     }
   };
 
-  const isExpiringSoon = (expiryDate: string) => {
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
+  const handleAddService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVehicle) return;
+
+    try {
+      const { error } = await supabase
+        .from('vehicle_services')
+        .insert([{
+          vehicle_id: selectedVehicle.id,
+          service_date: serviceFormData.service_date,
+          kilometers: serviceFormData.kilometers,
+          notes: serviceFormData.notes || null,
+          created_by: profile?.id,
+        }]);
+
+      if (error) throw error;
+
+      await fetchVehicleServices(selectedVehicle.id);
+      setServiceFormData({
+        service_date: '',
+        kilometers: 0,
+        notes: '',
+      });
+    } catch (error) {
+      console.error('Error adding service:', error);
+      alert('Errore durante l\'aggiunta del tagliando');
+    }
   };
 
-  const getDaysUntilExpiry = (expiryDate: string) => {
-    const expiry = new Date(expiryDate);
+  const handleDeleteService = async (serviceId: string) => {
+    if (!confirm('Sei sicuro di voler eliminare questo tagliando?')) return;
+    if (!selectedVehicle) return;
+
+    try {
+      const { error } = await supabase
+        .from('vehicle_services')
+        .delete()
+        .eq('id', serviceId);
+
+      if (error) throw error;
+      await fetchVehicleServices(selectedVehicle.id);
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      alert('Errore durante l\'eliminazione del tagliando');
+    }
+  };
+
+  const openServicesModal = async (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    await fetchVehicleServices(vehicle.id);
+    setIsServicesModalOpen(true);
+  };
+
+  const closeServicesModal = () => {
+    setIsServicesModalOpen(false);
+    setSelectedVehicle(null);
+    setVehicleServices([]);
+    setServiceFormData({
+      service_date: '',
+      kilometers: 0,
+      notes: '',
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingVehicle) {
+        const { error } = await supabase
+          .from('vehicles')
+          .update({
+            ...formData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingVehicle.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('vehicles')
+          .insert([{
+            ...formData,
+            organization_id: profile?.organization_id,
+          }]);
+
+        if (error) throw error;
+      }
+
+      await fetchVehicles();
+      closeModal();
+    } catch (error) {
+      console.error('Error saving vehicle:', error);
+      alert('Errore durante il salvataggio del veicolo');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Sei sicuro di voler eliminare questo veicolo?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('vehicles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchVehicles();
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+      alert('Errore durante l\'eliminazione del veicolo');
+    }
+  };
+
+  const openModal = (vehicle?: Vehicle) => {
+    if (vehicle) {
+      setEditingVehicle(vehicle);
+      setFormData({
+        plate: vehicle.plate,
+        details: vehicle.details,
+        kilometers: vehicle.kilometers,
+        inspection_date: vehicle.inspection_date || '',
+        issues: vehicle.issues,
+        notes: vehicle.notes,
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingVehicle(null);
+    setFormData({
+      plate: '',
+      details: '',
+      kilometers: 0,
+      inspection_date: '',
+      issues: '',
+      notes: '',
+    });
+  };
+
+  const isDateExpiring = (date: string | null) => {
+    if (!date) return false;
+    const targetDate = new Date(date);
     const today = new Date();
-    return Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntil = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntil <= 30 && daysUntil >= 0;
+  };
+
+  const isDateExpired = (date: string | null) => {
+    if (!date) return false;
+    const targetDate = new Date(date);
+    const today = new Date();
+    return targetDate < today;
   };
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl sm:text-2xl font-bold">{worker.full_name}</h2>
-                <span className="px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-medium">
-                  {worker.role === 'worker' && 'Operaio'}
-                  {worker.role === 'administrator' && 'Amministratore'}
-                  {worker.role === 'org_manager' && 'Responsabile Organizzazione'}
-                  {worker.role === 'sales_manager' && 'Responsabile Commerciale'}
-                </span>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div>
+          <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+            <Truck className="w-6 h-6 sm:w-8 sm:h-8" />
+            Gestione Furgoni
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestisci i veicoli aziendali</p>
+        </div>
+        <button
+          onClick={() => openModal()}
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto"
+        >
+          <Plus className="w-5 h-5" />
+          Aggiungi Furgone
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3 sm:gap-6">
+        {vehicles.map((vehicle) => (
+          <div key={vehicle.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex justify-between items-start mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="bg-blue-100 p-2 sm:p-3 rounded-lg flex-shrink-0">
+                  <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{vehicle.plate}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 truncate">{vehicle.details || 'Nessun dettaglio'}</p>
+                </div>
               </div>
-              <p className="text-blue-100 mt-1">{worker.email}</p>
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  onClick={() => openModal(vehicle)}
+                  className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
+                >
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(vehicle.id)}
+                  className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
+                >
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-semibold text-gray-700">Km:</span>
+                <span className="text-gray-900">{vehicle.kilometers.toLocaleString()}</span>
+              </div>
+
+              <button
+                onClick={() => openServicesModal(vehicle)}
+                className="w-full flex items-center justify-center gap-2 text-sm p-2 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span className="font-semibold">Storico Tagliandi</span>
+              </button>
+
+              {vehicle.inspection_date && (
+                <div className={`flex items-center gap-2 text-xs sm:text-sm p-2 rounded ${
+                  isDateExpired(vehicle.inspection_date)
+                    ? 'bg-red-50 text-red-700'
+                    : isDateExpiring(vehicle.inspection_date)
+                    ? 'bg-yellow-50 text-yellow-700'
+                    : 'bg-gray-50 text-gray-700'
+                }`}>
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  <span className="font-semibold">Revisione:</span>
+                  <span>{new Date(vehicle.inspection_date).toLocaleDateString('it-IT')}</span>
+                </div>
+              )}
+
+              {vehicle.issues && (
+                <div className="flex items-start gap-2 text-xs sm:text-sm bg-red-50 p-2 rounded">
+                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-red-700 line-clamp-2">{vehicle.issues}</span>
+                </div>
+              )}
+
+              {vehicle.notes && (
+                <div className="text-xs sm:text-sm text-gray-600 bg-gray-50 p-2 rounded line-clamp-2">
+                  {vehicle.notes}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
 
-        <div className="flex border-b">
-          <button
-            onClick={() => setActiveTab('courses')}
-            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
-              activeTab === 'courses'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <GraduationCap className="w-5 h-5 inline-block mr-2" />
-            Corsi
-          </button>
-          <button
-            onClick={() => setActiveTab('medical')}
-            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
-              activeTab === 'medical'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <Stethoscope className="w-5 h-5 inline-block mr-2" />
-            Visite Mediche
-          </button>
-          <button
-            onClick={() => setActiveTab('card')}
-            className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 font-medium transition-colors ${
-              activeTab === 'card'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <CreditCard className="w-5 h-5 inline-block mr-2" />
-            Carta Acquisti
-          </button>
+      {vehicles.length === 0 && (
+        <div className="text-center py-8 sm:py-8 sm:py-12">
+          <Truck className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">Nessun veicolo registrato</p>
         </div>
+      )}
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {activeTab === 'courses' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Corsi Completati</h3>
-                <button
-                  onClick={() => {
-                    setShowCourseForm(!showCourseForm);
-                    if (showCourseForm) {
-                      setEditingCourse(null);
-                      setCourseForm({ course_name: '', completion_date: '', notes: '' });
-                    }
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Aggiungi Corso</span>
+      {/* Vehicle Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900">
+                  {editingVehicle ? 'Modifica Furgone' : 'Aggiungi Furgone'}
+                </h2>
+                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 p-1">
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
-              {showCourseForm && (
-                <form onSubmit={handleAddCourse} className="bg-gray-50 p-4 rounded-lg space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nome Corso
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={courseForm.course_name}
-                      onChange={(e) => setCourseForm({ ...courseForm, course_name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Data Completamento
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={courseForm.completion_date}
-                      onChange={(e) => setCourseForm({ ...courseForm, completion_date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Note (opzionale)
-                    </label>
-                    <textarea
-                      value={courseForm.notes}
-                      onChange={(e) => setCourseForm({ ...courseForm, notes: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {editingCourse ? 'Aggiorna' : 'Salva'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowCourseForm(false);
-                        setEditingCourse(null);
-                        setCourseForm({ course_name: '', completion_date: '', notes: '' });
-                      }}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      Annulla
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {courses.length === 0 ? (
-                <div className="text-center py-8 sm:py-12 text-gray-500">
-                  <GraduationCap className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" />
-                  <p>Nessun corso registrato</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {courses.map((course) => (
-                    <div key={course.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-lg">{course.course_name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Completato il {new Date(course.completion_date).toLocaleDateString('it-IT')}
-                          </p>
-                          {course.notes && (
-                            <p className="text-sm text-gray-500 mt-2">{course.notes}</p>
-                          )}
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditCourse(course)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCourse(course.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'medical' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Visite Mediche</h3>
-                <button
-                  onClick={() => {
-                    setShowMedicalForm(!showMedicalForm);
-                    if (showMedicalForm) {
-                      setEditingMedical(null);
-                      setMedicalForm({ checkup_date: '', expiry_date: '', notes: '' });
-                    }
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Aggiungi Visita</span>
-                </button>
-              </div>
-
-              {showMedicalForm && (
-                <form onSubmit={handleAddMedical} className="bg-gray-50 p-4 rounded-lg space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Data Visita
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={medicalForm.checkup_date}
-                      onChange={(e) => setMedicalForm({ ...medicalForm, checkup_date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Data Scadenza
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={medicalForm.expiry_date}
-                      onChange={(e) => setMedicalForm({ ...medicalForm, expiry_date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Note (opzionale)
-                    </label>
-                    <textarea
-                      value={medicalForm.notes}
-                      onChange={(e) => setMedicalForm({ ...medicalForm, notes: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={2}
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {editingMedical ? 'Aggiorna' : 'Salva'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMedicalForm(false);
-                        setEditingMedical(null);
-                        setMedicalForm({ checkup_date: '', expiry_date: '', notes: '' });
-                      }}
-                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                    >
-                      Annulla
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {medicalCheckups.length === 0 ? (
-                <div className="text-center py-8 sm:py-12 text-gray-500">
-                  <Stethoscope className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" />
-                  <p>Nessuna visita medica registrata</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {medicalCheckups.map((medical) => (
-                    <div
-                      key={medical.id}
-                      className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                        isExpiringSoon(medical.expiry_date)
-                          ? 'bg-orange-50 border-orange-300'
-                          : 'bg-white'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          {isExpiringSoon(medical.expiry_date) && (
-                            <div className="flex items-center space-x-2 mb-2">
-                              <AlertTriangle className="w-5 h-5 text-orange-600" />
-                              <span className="text-sm font-semibold text-orange-600">
-                                Scade tra {getDaysUntilExpiry(medical.expiry_date)} giorni
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600">
-                              Visita del {new Date(medical.checkup_date).toLocaleDateString('it-IT')}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium">
-                              Scadenza: {new Date(medical.expiry_date).toLocaleDateString('it-IT')}
-                            </span>
-                          </div>
-                          {medical.notes && (
-                            <p className="text-sm text-gray-500 mt-2">{medical.notes}</p>
-                          )}
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditMedical(medical)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMedical(medical.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'card' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Carta Acquisti</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  Disponibile per tutti i ruoli
-                </span>
-              </div>
-
-              <div className="bg-white border rounded-lg p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Numero Carta
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Targa *
                   </label>
                   <input
                     type="text"
-                    placeholder="Nessuna"
-                    value={paymentCard.payment_card_number}
-                    onChange={(e) => setPaymentCard({ ...paymentCard, payment_card_number: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                    value={formData.plate}
+                    onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="ES: AB123CD"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Lascia vuoto per indicare "Nessuna carta assegnata"
-                  </p>
                 </div>
 
-                {paymentCard.payment_card_number && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Dettagli Veicolo
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.details}
+                    onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="ES: Fiat Ducato Bianco"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kilometraggio
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.kilometers}
+                    onChange={(e) => setFormData({ ...formData, kilometers: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Data Revisione
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.inspection_date}
+                    onChange={(e) => setFormData({ ...formData, inspection_date: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Problemi
+                  </label>
+                  <textarea
+                    value={formData.issues}
+                    onChange={(e) => setFormData({ ...formData, issues: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="Eventuali problemi o guasti"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Note
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="Note aggiuntive"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {editingVehicle ? 'Salva Modifiche' : 'Aggiungi Furgone'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 bg-gray-200 text-gray-800 py-2.5 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Services Modal */}
+      {isServicesModalOpen && selectedVehicle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-start mb-4 sm:mb-4 sm:mb-6">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900">Storico Tagliandi</h2>
+                  <p className="text-sm sm:text-base text-gray-600 mt-1 truncate">
+                    {selectedVehicle.plate} - {selectedVehicle.details}
+                  </p>
+                </div>
+                <button onClick={closeServicesModal} className="text-gray-500 hover:text-gray-700 p-1 ml-2">
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddService} className="mb-4 sm:mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Aggiungi Tagliando
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Data Assegnazione
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Data *
                     </label>
                     <input
                       type="date"
-                      value={paymentCard.payment_card_assigned_date}
-                      onChange={(e) => setPaymentCard({ ...paymentCard, payment_card_assigned_date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                      value={serviceFormData.service_date}
+                      onChange={(e) => setServiceFormData({ ...serviceFormData, service_date: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                )}
-
-                <button
-                  onClick={handleSavePaymentCard}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Salva Modifiche
-                </button>
-
-                <div className="mt-6 pt-6 border-t">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">
-                          {paymentCard.payment_card_number ? 'Carta Assegnata' : 'Nessuna Carta Assegnata'}
-                        </p>
-                        {paymentCard.payment_card_number && (
-                          <div className="mt-2 space-y-1">
-                            <p className="text-sm text-blue-700">
-                              Numero: {paymentCard.payment_card_number}
-                            </p>
-                            {paymentCard.payment_card_assigned_date && (
-                              <p className="text-sm text-blue-700">
-                                Assegnata il: {new Date(paymentCard.payment_card_assigned_date).toLocaleDateString('it-IT')}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Km *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={serviceFormData.kilometers}
+                      onChange={(e) => setServiceFormData({ ...serviceFormData, kilometers: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Note
+                    </label>
+                    <input
+                      type="text"
+                      value={serviceFormData.notes}
+                      onChange={(e) => setServiceFormData({ ...serviceFormData, notes: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Opzionale"
+                    />
                   </div>
                 </div>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Aggiungi Tagliando
+                </button>
+              </form>
+
+              <div className="space-y-3">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5" />
+                  Storico ({vehicleServices.length})
+                </h3>
+
+                {vehicleServices.length === 0 ? (
+                  <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg">
+                    <Wrench className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600 text-sm sm:text-base">Nessun tagliando registrato</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {vehicleServices.map((service) => (
+                      <div key={service.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Calendar className="w-4 h-4 text-blue-600" />
+                                <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                                  {new Date(service.service_date).toLocaleDateString('it-IT')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <span className="text-xs sm:text-sm text-gray-600">Km:</span>
+                                <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                                  {service.kilometers.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                            {service.notes && (
+                              <p className="text-xs sm:text-sm text-gray-600">{service.notes}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteService(service.id)}
+                            className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors ml-2 flex-shrink-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 sm:mt-6 pt-4 border-t">
+                <button
+                  onClick={closeServicesModal}
+                  className="w-full bg-gray-200 text-gray-800 py-2.5 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Chiudi
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
