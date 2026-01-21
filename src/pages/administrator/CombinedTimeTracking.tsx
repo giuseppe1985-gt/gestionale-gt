@@ -7,10 +7,10 @@ export default function CombinedTimeTracking() {
   const [activeTab, setActiveTab] = useState<'tracking' | 'view'>('tracking');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gestione Timbrature</h1>
-        <p className="text-gray-600 mt-1">Timbratura personale e resoconto ore lavoratori</p>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Gestione Timbrature</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Timbratura personale e resoconto ore lavoratori</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -18,7 +18,7 @@ export default function CombinedTimeTracking() {
           <nav className="flex">
             <button
               onClick={() => setActiveTab('tracking')}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'tracking'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -29,7 +29,7 @@ export default function CombinedTimeTracking() {
             </button>
             <button
               onClick={() => setActiveTab('view')}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'view'
                   ? 'border-green-600 text-green-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
