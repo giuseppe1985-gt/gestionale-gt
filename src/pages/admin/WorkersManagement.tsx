@@ -249,8 +249,8 @@ export default function WorkersManagement() {
     const labels = {
       worker: 'Operaio',
       administrator: 'Amministratore',
-      org_manager: 'Responsabile Organizzazione',
-      sales_manager: 'Responsabile Commerciale',
+      org_manager: 'Resp. Org.',
+      sales_manager: 'Resp. Comm.',
       admin: 'Admin',
     };
     return labels[role as keyof typeof labels] || role;
@@ -265,7 +265,7 @@ export default function WorkersManagement() {
       admin: 'bg-red-100 text-red-800',
     };
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badges[role as keyof typeof badges]}`}>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badges[role as keyof typeof badges]}`}>
         {getRoleLabel(role)}
       </span>
     );
@@ -281,25 +281,25 @@ export default function WorkersManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestione Lavoratori</h1>
-          <p className="text-gray-600 mt-1">Aggiungi, modifica e gestisci i lavoratori</p>
+          <h1 className="text-xl sm:text-xl sm:text-3xl font-bold text-gray-900">Gestione Lavoratori</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Aggiungi, modifica e gestisci i lavoratori</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg"
+          className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all shadow-lg w-full sm:w-auto"
         >
           <UserPlus className="w-5 h-5" />
           <span>Aggiungi Lavoratore</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-4">
+      <div className="bg-white rounded-xl shadow-md p-3 sm:p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -307,29 +307,109 @@ export default function WorkersManagement() {
             placeholder="Cerca per nome, email o posizione..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredWorkers.map((worker) => (
+          <div key={worker.id} className="bg-white rounded-xl shadow-md p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                {worker.avatar_url ? (
+                  <img
+                    src={worker.avatar_url}
+                    alt={worker.full_name}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    {worker.full_name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{worker.full_name}</p>
+                  {getRoleBadge(worker.role)}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3 space-y-1.5 text-sm">
+              <div className="flex items-center text-gray-600">
+                <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{worker.email}</span>
+              </div>
+              {worker.phone && (
+                <div className="flex items-center text-gray-600">
+                  <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span>{worker.phone}</span>
+                </div>
+              )}
+              {worker.position && (
+                <div className="flex items-center text-gray-600">
+                  <Briefcase className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span>{worker.position}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-1">
+              <button
+                onClick={() => setSelectedWorker(worker)}
+                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                title="Visualizza dettagli"
+              >
+                <FileText className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => openEditModal(worker)}
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Modifica"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => openPasswordModal(worker)}
+                  className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                  title="Cambia password"
+                >
+                  <Key className="w-5 h-5" />
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(worker.id)}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Elimina"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Lavoratore
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contatti
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ruolo
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Posizione
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Azioni
                 </th>
               </tr>
@@ -337,7 +417,7 @@ export default function WorkersManagement() {
             <tbody className="divide-y divide-gray-200">
               {filteredWorkers.map((worker) => (
                 <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-4">
                     <div className="flex items-center">
                       {worker.avatar_url ? (
                         <img
@@ -355,11 +435,11 @@ export default function WorkersManagement() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-4">
                     <div className="space-y-1">
                       <div className="flex items-center text-sm text-gray-600">
                         <Mail className="w-4 h-4 mr-2" />
-                        {worker.email}
+                        <span className="truncate max-w-[200px]">{worker.email}</span>
                       </div>
                       {worker.phone && (
                         <div className="flex items-center text-sm text-gray-600">
@@ -369,8 +449,8 @@ export default function WorkersManagement() {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4">{getRoleBadge(worker.role)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-4">{getRoleBadge(worker.role)}</td>
+                  <td className="px-4 lg:px-6 py-4">
                     {worker.position && (
                       <div className="flex items-center text-sm text-gray-600">
                         <Briefcase className="w-4 h-4 mr-2" />
@@ -378,8 +458,8 @@ export default function WorkersManagement() {
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end space-x-2">
+                  <td className="px-4 lg:px-6 py-4 text-right">
+                    <div className="flex justify-end space-x-1">
                       <button
                         onClick={() => setSelectedWorker(worker)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
@@ -428,8 +508,8 @@ export default function WorkersManagement() {
 
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-4 sm:p-6">
+            <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               Cambia Password
             </h2>
             <div className="mb-4">
@@ -453,7 +533,7 @@ export default function WorkersManagement() {
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                     minLength={6}
                     placeholder="Inserisci la nuova password"
@@ -461,7 +541,7 @@ export default function WorkersManagement() {
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors p-1"
                     tabIndex={-1}
                   >
                     {showNewPassword ? (
@@ -476,7 +556,7 @@ export default function WorkersManagement() {
                 </p>
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -485,13 +565,13 @@ export default function WorkersManagement() {
                     setNewPassword('');
                     setShowNewPassword(false);
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-500 text-white px-4 py-2 rounded-lg hover:from-yellow-500 hover:to-yellow-400 transition-all"
+                  className="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-500 text-white px-4 py-2.5 rounded-lg hover:from-yellow-500 hover:to-yellow-400 transition-all"
                 >
                   Cambia Password
                 </button>
@@ -503,8 +583,8 @@ export default function WorkersManagement() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl sm:text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-4 sm:mb-6">
               {editingWorker ? 'Modifica Lavoratore' : 'Aggiungi Lavoratore'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -516,7 +596,7 @@ export default function WorkersManagement() {
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -531,7 +611,7 @@ export default function WorkersManagement() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -545,7 +625,7 @@ export default function WorkersManagement() {
                         type={showPassword ? "text" : "password"}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                         minLength={6}
                         placeholder="••••••••"
@@ -553,7 +633,7 @@ export default function WorkersManagement() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors p-1"
                         tabIndex={-1}
                       >
                         {showPassword ? (
@@ -575,7 +655,7 @@ export default function WorkersManagement() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -587,7 +667,7 @@ export default function WorkersManagement() {
                   type="text"
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="es. Operaio, Capocantiere, ecc."
                 />
               </div>
@@ -605,7 +685,7 @@ export default function WorkersManagement() {
                         role: e.target.value as 'worker' | 'administrator' | 'org_manager' | 'sales_manager',
                       })
                     }
-                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
+                    className="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-no-repeat bg-right bg-[length:20px] cursor-pointer"
                     style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center" }}
                     required
                   >
@@ -615,25 +695,25 @@ export default function WorkersManagement() {
                     <option value="sales_manager">Responsabile Commerciale</option>
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    Seleziona il ruolo del dipendente. I permessi specifici saranno configurati successivamente.
+                    Seleziona il ruolo del dipendente.
                   </p>
                 </div>
               )}
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
+                  className="flex-1 bg-gradient-to-r from-blue-900 to-blue-700 text-white px-4 py-2.5 rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all"
                 >
                   {editingWorker ? 'Aggiorna' : 'Aggiungi'}
                 </button>
