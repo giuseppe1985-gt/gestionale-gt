@@ -40,11 +40,11 @@ export default function Login({ onShowRegister }: LoginProps) {
           <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-lg p-2">
             <img src="/logo.jpg" alt="GT Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestione Cantieri</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestione Cantieri</h1>
           <p className="text-gray-600 text-sm mt-1">Sistema di Gestione Lavoratori</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
