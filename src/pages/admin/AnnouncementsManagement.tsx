@@ -133,11 +133,8 @@ export default function AnnouncementsManagement() {
           return;
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('announcement-attachments')
-          .getPublicUrl(filePath);
-
-        attachmentUrl = publicUrl;
+        // Salva il path relativo, non l'URL pubblico
+        attachmentUrl = filePath;
         attachmentName = selectedFile.name;
       }
 
