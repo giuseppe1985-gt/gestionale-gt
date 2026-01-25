@@ -74,13 +74,24 @@ export default function AnnouncementsView() {
 
   const handleDownloadAttachment = async (attachmentUrl: string, attachmentName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('announcement-attachments')
-        .download(attachmentUrl);
+      let blob: Blob;
+      
+      // Se è un URL completo (vecchi annunci), usa fetch diretto
+      if (attachmentUrl.startsWith('http')) {
+        const response = await fetch(attachmentUrl);
+        if (!response.ok) throw new Error('Download failed');
+        blob = await response.blob();
+      } else {
+        // Se è un path relativo (nuovi annunci), usa Supabase storage
+        const { data, error } = await supabase.storage
+          .from('announcement-attachments')
+          .download(attachmentUrl);
 
-      if (error) throw error;
+        if (error) throw error;
+        blob = data;
+      }
 
-      const url = URL.createObjectURL(data);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = attachmentName;
