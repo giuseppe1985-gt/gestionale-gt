@@ -75,7 +75,7 @@ export default function AnnouncementsView() {
   const handleDownloadAttachment = async (attachmentUrl: string, attachmentName: string) => {
     try {
       const { data, error } = await supabase.storage
-        .from('announcements')
+        .from('announcement-attachments')
         .download(attachmentUrl);
 
       if (error) throw error;
